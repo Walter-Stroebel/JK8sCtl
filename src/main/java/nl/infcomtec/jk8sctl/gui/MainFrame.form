@@ -38,7 +38,7 @@
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="menuSaveYaml">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Save Yaml"/>
+                <Property name="text" type="java.lang.String" value="Save YAML"/>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>
               <Events>
@@ -47,7 +47,7 @@
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="menuCloseYaml">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Close Yaml"/>
+                <Property name="text" type="java.lang.String" value="Close YAML"/>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>
               <Events>
@@ -60,6 +60,17 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Edit"/>
           </Properties>
+          <SubComponents>
+            <MenuItem class="javax.swing.JMenuItem" name="menuPackYaml">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Pack YAML"/>
+                <Property name="toolTipText" type="java.lang.String" value="Also removes comments"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="menuPackYamlActionPerformed"/>
+              </Events>
+            </MenuItem>
+          </SubComponents>
         </Menu>
       </SubComponents>
     </Menu>

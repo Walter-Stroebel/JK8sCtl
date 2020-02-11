@@ -32,7 +32,7 @@ public class Global {
     /**
      * Where we keep our working files
      */
-    public static final File workDir = new File(new File(System.getProperty("user.home")), ".k8sctl");
+    public static final File workDir = new File(new File(System.getProperty("user.home")), ".jk8sctl");
 
     /**
      * Get configuration as an object.
@@ -54,6 +54,12 @@ public class Global {
      */
     public static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger("GLOBAL");
 
+    public static File getYamlDir() {
+        File ret = new File(getConfig().yamlDir);
+        if (ret.exists()) return ret;
+        return new File(System.getProperty("user.home"));
+    }
+
     public static K8sCtlCfg loadConfig() {
         try {
             config = K8sCtlCfg.loadConfig();
@@ -61,6 +67,15 @@ public class Global {
             Logger.getLogger(Global.class.getName()).log(Level.SEVERE, null, ex);
         }
         return config;
+    }
+
+    public static void setYamlDir(File parentFile) {
+        try {
+            getConfig().yamlDir=parentFile.getCanonicalPath();
+            getConfig().saveConfig();
+        } catch (IOException ex) {
+            Logger.getLogger(Global.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**

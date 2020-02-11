@@ -37,8 +37,10 @@ public class K8sCtlCfg {
             String[] tried = new String[]{SBIN_KUBECTL,BIN_KUBECTL,USR_SBIN_KUBECTL,USR_BIN_KUBECTL,USR_LOCAL_SBIN_KUBECTL,USR_LOCAL_BIN_KUBECTL,alt1};
             Global.warn("KubeCtl program not found, tried: %s",Arrays.toString(tried));
         }
+        ret.yamlDir=System.getProperty("user.home");
         return ret;
     }
+    public String yamlDir;
 
     public void saveConfig() throws IOException {
         Global.workDir.mkdirs();

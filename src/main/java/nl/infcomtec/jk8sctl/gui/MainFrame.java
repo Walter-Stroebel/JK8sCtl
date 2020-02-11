@@ -4,6 +4,7 @@
 package nl.infcomtec.jk8sctl.gui;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.logging.Level;
@@ -46,6 +47,7 @@ public class MainFrame extends javax.swing.JFrame {
         menuSaveYaml = new javax.swing.JMenuItem();
         menuCloseYaml = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
+        menuPackYaml = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Kubernetes Control GUI");
@@ -78,7 +80,7 @@ public class MainFrame extends javax.swing.JFrame {
         });
         jMenu1.add(menuLoadYaml);
 
-        menuSaveYaml.setText("Save Yaml");
+        menuSaveYaml.setText("Save YAML");
         menuSaveYaml.setEnabled(false);
         menuSaveYaml.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -87,7 +89,7 @@ public class MainFrame extends javax.swing.JFrame {
         });
         jMenu1.add(menuSaveYaml);
 
-        menuCloseYaml.setText("Close Yaml");
+        menuCloseYaml.setText("Close YAML");
         menuCloseYaml.setEnabled(false);
         menuCloseYaml.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -99,6 +101,16 @@ public class MainFrame extends javax.swing.JFrame {
         jMenuBar1.add(jMenu1);
 
         jMenu2.setText("Edit");
+
+        menuPackYaml.setText("Pack YAML");
+        menuPackYaml.setToolTipText("Also removes comments");
+        menuPackYaml.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuPackYamlActionPerformed(evt);
+            }
+        });
+        jMenu2.add(menuPackYaml);
+
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
@@ -143,13 +155,14 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void menuLoadYamlActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuLoadYamlActionPerformed
         JFileChooser jfc = new JFileChooser(Global.workDir);
+        jfc.setCurrentDirectory(Global.getYamlDir());
         jfc.setAcceptAllFileFilterUsed(false);
         jfc.setFileFilter(new FileFilter() {
             @Override
             public boolean accept(File f) {
-                return f.getName().toLowerCase().endsWith(".yml") || f.getName().toLowerCase().endsWith(".yaml");
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".yml") || f.getName().toLowerCase().endsWith(".yaml");
             }
-
+            
             @Override
             public String getDescription() {
                 return "YAML files";
@@ -157,6 +170,7 @@ public class MainFrame extends javax.swing.JFrame {
         });
         int showOpenDialog = jfc.showOpenDialog(this);
         if (JFileChooser.APPROVE_OPTION == showOpenDialog) {
+            Global.setYamlDir(jfc.getSelectedFile().getParentFile());
             YamlFile yamlFile = new YamlFile(jfc.getSelectedFile());
             tabsYaml.addTab(yamlFile.src.getName(), yamlFile);
             menuCloseYaml.setEnabled(true);
@@ -168,11 +182,17 @@ public class MainFrame extends javax.swing.JFrame {
         try {
             if (tabsYaml.getSelectedIndex() >= 0) {
                 YamlFile sel = (YamlFile) tabsYaml.getSelectedComponent();
-                Yaml yaml = new Yaml();
-                Iterable<Object> loadAll = yaml.loadAll(sel.jta.getText());
-                try (StringWriter sw = new StringWriter()) {
-                    yaml.dumpAll(loadAll.iterator(), sw);
-                    System.out.println(sw.toString());
+                sel.backup();
+                {
+                    // test-parse the Yaml
+                    Yaml yaml = new Yaml();
+                    Iterable<Object> loadAll = yaml.loadAll(sel.jta.getText());
+                    try (StringWriter sw = new StringWriter()) {
+                        yaml.dumpAll(loadAll.iterator(), sw);
+                    }
+                }
+                try (FileWriter sw = new FileWriter(sel.src)) {
+                    sw.write(sel.jta.getText().trim() + "\n");
                 }
             }
         } catch (Exception ex) {
@@ -184,7 +204,27 @@ public class MainFrame extends javax.swing.JFrame {
         if (tabsYaml.getSelectedIndex() >= 0) {
             tabsYaml.remove(tabsYaml.getSelectedIndex());
         }
+        if (tabsYaml.getTabCount() < 1) {
+            menuCloseYaml.setEnabled(false);
+            menuSaveYaml.setEnabled(false);
+        }
     }//GEN-LAST:event_menuCloseYamlActionPerformed
+
+    private void menuPackYamlActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuPackYamlActionPerformed
+        try {
+            if (tabsYaml.getSelectedIndex() >= 0) {
+                YamlFile sel = (YamlFile) tabsYaml.getSelectedComponent();
+                Yaml yaml = new Yaml();
+                Iterable<Object> loadAll = yaml.loadAll(sel.jta.getText());
+                try (StringWriter sw = new StringWriter()) {
+                    yaml.dumpAll(loadAll.iterator(), sw);
+                    sel.jta.setText(sw.toString() + "\n");
+                }
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.toString());
+        }
+    }//GEN-LAST:event_menuPackYamlActionPerformed
 
     /**
      * @param args the command line arguments
@@ -229,6 +269,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem menuCloseYaml;
     private javax.swing.JMenuItem menuLoadYaml;
+    private javax.swing.JMenuItem menuPackYaml;
     private javax.swing.JMenuItem menuResetConfig;
     private javax.swing.JMenuItem menuSaveCfg;
     private javax.swing.JMenuItem menuSaveYaml;
