@@ -7,8 +7,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 /**
  * Holds all global data and configuration.
@@ -60,6 +63,12 @@ public class Global {
         return new File(System.getProperty("user.home"));
     }
 
+    public static Icon getIcon(String name){
+        String imageLocation="/icons/"+name+"24.gif";
+        URL imageURL = Global.class.getResource(imageLocation);
+        return new ImageIcon(imageURL, name);
+    }
+    
     public static K8sCtlCfg loadConfig() {
         try {
             config = K8sCtlCfg.loadConfig();

@@ -21,7 +21,7 @@ import org.yaml.snakeyaml.Yaml;
  */
 public class YamlFile extends JPanel {
 
-    public final File src;
+    public File src;
     public final JTextArea jta;
 
     public YamlFile(File src) {
