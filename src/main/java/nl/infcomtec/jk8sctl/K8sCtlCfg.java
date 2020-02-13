@@ -14,7 +14,13 @@ import java.util.Arrays;
  * @author walter
  */
 public class K8sCtlCfg {
-    public String kubeCtlProgam;
+
+    private static final String BIN_KUBECTL = "/bin/kubectl";
+    private static final String SBIN_KUBECTL = "/sbin/kubectl";
+    private static final String USR_BIN_KUBECTL = "/usr/bin/kubectl";
+    private static final String USR_LOCAL_BIN_KUBECTL = "/usr/local/bin/kubectl";
+    private static final String USR_LOCAL_SBIN_KUBECTL = "/usr/local/sbin/kubectl";
+    private static final String USR_SBIN_KUBECTL = "/usr/sbin/kubectl";
 
     public static K8sCtlCfg defaults() {
         K8sCtlCfg ret = new K8sCtlCfg();
@@ -34,12 +40,44 @@ public class K8sCtlCfg {
         } else if (new File(alt1).exists()) {
             ret.kubeCtlProgam = alt1;
         } else {
-            String[] tried = new String[]{SBIN_KUBECTL,BIN_KUBECTL,USR_SBIN_KUBECTL,USR_BIN_KUBECTL,USR_LOCAL_SBIN_KUBECTL,USR_LOCAL_BIN_KUBECTL,alt1};
-            Global.warn("KubeCtl program not found, tried: %s",Arrays.toString(tried));
+            String[] tried = new String[]{SBIN_KUBECTL, BIN_KUBECTL, USR_SBIN_KUBECTL, USR_BIN_KUBECTL, USR_LOCAL_SBIN_KUBECTL, USR_LOCAL_BIN_KUBECTL, alt1};
+            Global.warn("KubeCtl program not found, tried: %s", Arrays.toString(tried));
         }
-        ret.yamlDir=System.getProperty("user.home");
+        ret.yamlDir = System.getProperty("user.home");
+        {
+            File k = new File(Global.homeDir, ".kube");
+            if (k.exists()) {
+                k = new File(k, "config");
+                if (k.exists()) {
+                    ret.k8sConfig = k.getAbsolutePath();
+                }
+            }
+        }
         return ret;
     }
+
+    public static K8sCtlCfg loadConfig() throws IOException {
+        Global.workDir.mkdirs();
+        File f = new File(Global.workDir, "config.json");
+        if (!f.exists()) {
+            Global.warn("Using default configuration, '%s' not found", f.getCanonicalPath());
+            return defaults();
+        }
+        try (FileReader reader = new FileReader(f)) {
+            return Global.gson.fromJson(reader, K8sCtlCfg.class);
+        }
+    }
+    /**
+     * Config file for connections to Kubernetes. Normally ~/.kube/config.
+     */
+    public String k8sConfig;
+    /**
+     * kubectl program to use
+     */
+    public String kubeCtlProgam;
+    /**
+     * Default storage directory for Yaml files.
+     */
     public String yamlDir;
 
     public void saveConfig() throws IOException {
@@ -49,22 +87,4 @@ public class K8sCtlCfg {
             writer.append('\n');
         }
     }
-
-    public static K8sCtlCfg loadConfig() throws IOException {
-        Global.workDir.mkdirs();
-        File f = new File(Global.workDir, "config.json");
-        if (!f.exists()){
-            Global.warn("Using default configuration, '%s' not found",f.getCanonicalPath());
-            return defaults();
-        }
-        try (FileReader reader = new FileReader(f)) {
-            return Global.gson.fromJson(reader,K8sCtlCfg.class);
-        }
-    }
-    private static final String BIN_KUBECTL = "/bin/kubectl";
-    private static final String SBIN_KUBECTL = "/sbin/kubectl";
-    private static final String USR_BIN_KUBECTL = "/usr/bin/kubectl";
-    private static final String USR_SBIN_KUBECTL = "/usr/sbin/kubectl";
-    private static final String USR_LOCAL_BIN_KUBECTL = "/usr/local/bin/kubectl";
-    private static final String USR_LOCAL_SBIN_KUBECTL = "/usr/local/sbin/kubectl";
 }

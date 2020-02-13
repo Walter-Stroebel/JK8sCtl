@@ -4,11 +4,7 @@
 package nl.infcomtec.jk8sctl;
 
 import io.kubernetes.client.models.V1ObjectMeta;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.TreeMap;
 import java.util.UUID;
-import nl.infcomtec.basicutils.ShowValues;
 import org.joda.time.DateTime;
 
 /**
@@ -17,41 +13,15 @@ import org.joda.time.DateTime;
  */
 public abstract class AbstractMetadata implements Metadata {
 
+    private final int mapId;
+
     protected final V1ObjectMeta metadata;
     private final String kind;
-    
-    public AbstractMetadata(String kind, V1ObjectMeta metadata) {
-        this.metadata=metadata;
-        this.kind=kind;
-        if (null != metadata) {
-            synchronized (Maps.byUUID){
-                List<Metadata> get = Maps.byUUID.get(getUUID());
-                if (null==get){
-                    Maps.byUUID.put(getUUID(), get=new LinkedList<>());
-                }
-                get.add(this);
-            }
-            synchronized (Maps.byNAME){
-                List<Metadata> get = Maps.byNAME.get(getName());
-                if (null==get){
-                    Maps.byNAME.put(getName(), get=new LinkedList<>());
-                }
-                get.add(this);
-            }
-        }
-    }
 
-    protected TreeMap<String, String> map() {
-        TreeMap<String, String> ret = new TreeMap(String.CASE_INSENSITIVE_ORDER);
-        ret.put("kind", kind);
-        if (null == metadata) {
-            ret.put("name", "null");
-            return ret;
-        }
-        ret.put("uid", getUid());
-        ret.put("name", getName());
-        ret.put("age", ShowValues.elaspedFromMillis(System.currentTimeMillis() - getCreationTimestamp().getMillis()).trim());
-        return ret;
+    public AbstractMetadata(int mapId, String kind, V1ObjectMeta metadata) {
+        this.mapId = mapId;
+        this.metadata = metadata;
+        this.kind = kind;
     }
 
     @Override
@@ -85,10 +55,6 @@ public abstract class AbstractMetadata implements Metadata {
     public final String getUid() {
         return metadata.getUid();
     }
-    @Override
-    public String toString() {
-        return map().toString();
-    }
 
     /**
      * @return the kind
@@ -96,5 +62,45 @@ public abstract class AbstractMetadata implements Metadata {
     @Override
     public final String getKind() {
         return kind;
+    }
+
+    /**
+     * @return the mapId
+     */
+    @Override
+    public int getMapId() {
+        return mapId;
+    }
+
+    @Override
+    public final String getNamespace() {
+        if (null == metadata) {
+            return null;
+        }
+        if (null == metadata.getNamespace()) {
+            return "";
+        }
+        return metadata.getNamespace();
+    }
+
+    @Override
+    public final String getNSName() {
+        return getNamespace()+"."+getName();
+    }
+
+    @Override
+    public String getDotNodeName() {
+        return "nd" + mapId;
+    }
+
+    protected StringBuilder pre() {
+        StringBuilder ret = new StringBuilder();
+        ret.append(getDotNodeName()).append("[label=<<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">\n");
+        ret.append("<TR><TD>").append(getKind()).append("</TD><TD>").append(getName()).append("</TD></TR>");
+        return ret;
+    }
+
+    protected void post(StringBuilder sb) {
+        sb.append("</TABLE>>];\n");
     }
 }

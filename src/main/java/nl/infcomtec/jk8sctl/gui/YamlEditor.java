@@ -380,7 +380,7 @@ public class YamlEditor extends javax.swing.JFrame {
     }//GEN-LAST:event_butDeleteActionPerformed
 
     private void butRestoreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butRestoreActionPerformed
-       JFileChooser jfc = new JFileChooser(Global.workDir);
+        JFileChooser jfc = new JFileChooser(Global.workDir);
         jfc.setCurrentDirectory(Global.getYamlDir());
         jfc.setAcceptAllFileFilterUsed(false);
         jfc.setFileFilter(new FileFilter() {
@@ -399,8 +399,7 @@ public class YamlEditor extends javax.swing.JFrame {
             Global.setYamlDir(jfc.getSelectedFile().getParentFile());
             YamlFile yamlFile = new YamlFile(jfc.getSelectedFile());
             String oldName = yamlFile.src.getAbsolutePath();
-            yamlFile.src=new File(oldName.replace(".bak", ".yml"));
-            yamlFile.backup();
+            yamlFile.src = new File(oldName.replace(".bak", ".yml"));
             tabsYaml.addTab(yamlFile.src.getName(), yamlFile);
             butSaveActionPerformed(evt);
             butClose.setEnabled(true);

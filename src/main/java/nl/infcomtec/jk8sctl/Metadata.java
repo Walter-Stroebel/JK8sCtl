@@ -3,6 +3,7 @@
  */
 package nl.infcomtec.jk8sctl;
 
+import java.util.TreeMap;
 import java.util.UUID;
 import org.joda.time.DateTime;
 
@@ -37,4 +38,26 @@ public interface Metadata {
      * @return the name
      */
     String getName();
+
+    /**
+     * @return the namespace dot name
+     */
+    String getNSName();
+    /**
+     * @return GraphViz node
+     */
+    StringBuilder getDotNode();
+    /**
+     * @return GraphViz node name
+     */
+    String getDotNodeName();
+    /**
+     * @return the namespace. Empty string if the item has no namespace
+     */
+    String getNamespace();
+     /**
+     * @return the mapId
+     */
+    int getMapId();
+    TreeMap<Integer,String> getRelations();
 }

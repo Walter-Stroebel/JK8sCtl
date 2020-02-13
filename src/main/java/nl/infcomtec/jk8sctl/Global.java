@@ -5,6 +5,8 @@ package nl.infcomtec.jk8sctl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.kubernetes.client.ApiClient;
+import io.kubernetes.client.util.Config;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -56,6 +58,18 @@ public class Global {
      * Global default log object
      */
     public static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger("GLOBAL");
+
+    static ApiClient getK8sClient() throws IOException {
+        if (null==getK8sConfig()) {
+            return Config.defaultClient();
+        } else {
+            return Config.fromConfig(getK8sConfig());
+        }
+    }
+
+    static String getK8sConfig() {
+        return getConfig().k8sConfig;
+    }
 
     public static File getYamlDir() {
         File ret = new File(getConfig().yamlDir);

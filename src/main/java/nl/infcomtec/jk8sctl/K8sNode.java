@@ -3,14 +3,9 @@
  */
 package nl.infcomtec.jk8sctl;
 
-import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.models.V1ContainerImage;
 import io.kubernetes.client.models.V1Node;
-import io.kubernetes.client.models.V1NodeAddress;
-import io.kubernetes.client.models.V1NodeStatus;
-import java.util.Map;
 import java.util.TreeMap;
-import nl.infcomtec.basicutils.ShowValues;
 
 /**
  *
@@ -20,38 +15,8 @@ public class K8sNode extends AbstractMetadata {
 
     private V1Node k8s;
 
-    @Override
-    public TreeMap<String, String> map() {
-        TreeMap<String, String> ret = super.map();
-        V1NodeStatus status = k8s.getStatus();
-        if (null != status) {
-            if (null != status.getAddresses()) {
-                for (V1NodeAddress a : status.getAddresses()) {
-                    ret.put(a.getType(), a.getAddress());
-                }
-            }
-            if (null != status.getCapacity()) {
-                for (Map.Entry<String, Quantity> e : status.getCapacity().entrySet()) {
-                    switch (e.getKey()) {
-                        case "ephemeral-storage":
-                        case "memory":
-                            ret.put(e.getKey(), ShowValues.humanLongDig5KMGT(e.getValue().getNumber().longValue()).trim());
-                            break;
-                        default:
-                            ret.put(e.getKey(), e.getValue().toSuffixedString());
-                            break;
-                    }
-                }
-            }
-            if (null != status.getImages()) {
-                ret.put("totalImageSize", ShowValues.humanLongDig5KMGT(getTotalImageSize()).trim());
-            }
-        }
-        return ret;
-    }
-
-    public K8sNode(V1Node k8s) {
-        super("node",k8s.getMetadata());
+    public K8sNode(int mapId, V1Node k8s) {
+        super(mapId, "node", k8s.getMetadata());
         this.k8s = k8s;
     }
 
@@ -69,11 +34,25 @@ public class K8sNode extends AbstractMetadata {
         }
     }
 
+    @Override
+    public StringBuilder getDotNode() {
+        StringBuilder ret = pre();
+        post(ret);
+        return ret;
+    }
+
     /**
      * @return the k8s
      */
     public V1Node getK8s() {
         return k8s;
+    }
+
+    @Override
+    public TreeMap<Integer, String> getRelations() {
+        TreeMap<Integer, String> ret = new TreeMap<>();
+        ret.put(0, "node");
+        return ret;
     }
 
     /**
