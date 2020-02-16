@@ -5,6 +5,7 @@ package nl.infcomtec.jk8sctl;
 
 import java.util.TreeMap;
 import java.util.UUID;
+import javax.swing.tree.DefaultMutableTreeNode;
 import org.joda.time.DateTime;
 
 /**
@@ -12,9 +13,10 @@ import org.joda.time.DateTime;
  * @author walter
  */
 public interface Metadata {
+
     /**
-     * 
-     * @return the kind of object 
+     *
+     * @return the kind of object
      */
     String getKind();
 
@@ -43,21 +45,37 @@ public interface Metadata {
      * @return the namespace dot name
      */
     String getNSName();
+
     /**
      * @return GraphViz node
      */
     StringBuilder getDotNode();
+
     /**
      * @return GraphViz node name
      */
     String getDotNodeName();
+
     /**
      * @return the namespace. Empty string if the item has no namespace
      */
     String getNamespace();
-     /**
+
+    /**
      * @return the mapId
      */
     int getMapId();
-    TreeMap<Integer,String> getRelations();
+
+    /**
+     * For GraphViz: other objects this object relates to.
+     *
+     * @return edges
+     */
+    TreeMap<Integer, K8sRelation> getRelations();
+
+    /**
+     * For tree display
+     * @return root of this (sub) tree
+     */
+    DefaultMutableTreeNode getTree();
 }

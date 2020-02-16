@@ -5,6 +5,7 @@ package nl.infcomtec.jk8sctl;
 
 import io.kubernetes.client.models.V1Namespace;
 import java.util.TreeMap;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
@@ -24,10 +25,39 @@ public class K8sNamespace extends AbstractMetadata {
     }
 
     @Override
-    public TreeMap<Integer, String> getRelations() {
-        TreeMap<Integer, String> ret = new TreeMap<>();
-        if (getMapId()!=0){
-            ret.put(0, "");
+    public TreeMap<Integer, K8sRelation> getRelations() {
+        TreeMap<Integer, K8sRelation> ret = new TreeMap<>();
+        if (getMapId() != 0) {
+            ret.put(0, new K8sRelation(false, 0, ""));
+        }
+        return ret;
+    }
+
+    @Override
+    public DefaultMutableTreeNode getTree() {
+        DefaultMutableTreeNode ret = new DefaultMutableTreeNode(getKind());
+        ret.add(new DefaultMutableTreeNode(getName()));
+        ret.add(new DefaultMutableTreeNode(getCreationTimestamp()));
+        if (getMapId() == 0) {
+            for (Metadata item : Maps.items.values()) {
+                if (item.getMapId() == 0) {
+                    continue;
+                }
+                if (item instanceof K8sNamespace) {
+                    ret.add(item.getTree());
+                }
+                if (item instanceof K8sNode) {
+                    ret.add(item.getTree());
+                }
+            }
+        } else {
+            for (Metadata item : Maps.items.values()) {
+                if (!(item instanceof K8sNamespace)) {
+                    if (getName().equals(item.getNamespace())) {
+                        ret.add(item.getTree());
+                    }
+                }
+            }
         }
         return ret;
     }

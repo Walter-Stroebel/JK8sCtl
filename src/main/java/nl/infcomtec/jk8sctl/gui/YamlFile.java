@@ -45,7 +45,29 @@ public class YamlFile extends JPanel {
             JOptionPane.showMessageDialog(this, "Error: " + ex.toString());
             txt.append("Error: ").append(ex.toString()).append("\n");
         }
-        jta=new JTextArea(txt.toString());
+        jta = new JTextArea(txt.toString());
+        JScrollPane sPane = new JScrollPane(jta);
+        add(sPane, BorderLayout.CENTER);
+    }
+
+    public YamlFile(String yText) {
+        StringBuilder txt = new StringBuilder(yText);
+        try {
+            this.src = File.createTempFile("k8s", ".yml");
+            this.src.deleteOnExit();
+            setLayout(new BorderLayout());
+            txt.append('\n');
+            try (StringWriter sw = new StringWriter()) {
+                // test valid YAML
+                Yaml yaml = new Yaml();
+                Iterable<Object> loadAll = yaml.loadAll(txt.toString());
+                yaml.dumpAll(loadAll.iterator(), sw);
+            }
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.toString());
+            txt.append("Error: ").append(ex.toString()).append("\n");
+        }
+        jta = new JTextArea(txt.toString());
         JScrollPane sPane = new JScrollPane(jta);
         add(sPane, BorderLayout.CENTER);
     }

@@ -22,6 +22,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import nl.infcomtec.jk8sctl.Global;
 import nl.infcomtec.jk8sctl.K8sCtlCfg;
+import nl.infcomtec.jk8sctl.K8sRelation;
 import nl.infcomtec.jk8sctl.Maps;
 import nl.infcomtec.jk8sctl.Metadata;
 
@@ -88,19 +89,19 @@ public class Menu extends javax.swing.JFrame {
                 return;
             }
             Metadata item = Maps.items.get(mapId);
-            for (Map.Entry<Integer, String> m : item.getRelations().entrySet()) {
-                Metadata to = Maps.items.get(m.getKey());
-                if (m.getValue().isEmpty()) {
-                    dot.append(to.getDotNodeName()).append(" -> ").append(item.getDotNodeName()).append(";\n");
+            for (Map.Entry<Integer, K8sRelation> m : item.getRelations().entrySet()) {
+                Metadata link = Maps.items.get(m.getValue().other);
+                if (m.getValue().isTo) {
+                    dot.append(item.getDotNodeName()).append(" -> ").append(link.getDotNodeName()).append(m.getValue().toString());
                 } else {
-                    dot.append(to.getDotNodeName()).append(" -> ").append(item.getDotNodeName()).append("[label=\"").append(m.getValue()).append("\"];\n");
+                    dot.append(link.getDotNodeName()).append(" -> ").append(item.getDotNodeName()).append(m.getValue().toString());
                 }
                 draw(m.getKey(), uniq, dot);
             }
         }
 
         private void draw(final StringBuilder dot, Graphics _g, int w, int h) throws InterruptedException, IOException {
-            System.out.println(dot);
+            //System.out.println(dot);
             ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng");
             pb.redirectError(new File("/dev/null"));
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -167,63 +168,69 @@ public class Menu extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jToolBar1 = new javax.swing.JToolBar();
+        butConnect = new javax.swing.JButton();
+        butCreate = new javax.swing.JButton();
+        Debug = new javax.swing.JButton();
         viewPanel = new ViewPanel();
-        jMenuBar1 = new javax.swing.JMenuBar();
-        jMenu1 = new javax.swing.JMenu();
-        menuConnect = new javax.swing.JMenuItem();
-        jMenu2 = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Kubernetes Tools by InfComTec");
+
+        jToolBar1.setRollover(true);
+
+        butConnect.setText("Connect");
+        butConnect.setFocusable(false);
+        butConnect.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butConnect.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butConnect.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butConnectActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(butConnect);
+
+        butCreate.setText("Create");
+        butCreate.setFocusable(false);
+        butCreate.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butCreate.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butCreate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butCreateActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(butCreate);
+
+        Debug.setText("Debug");
+        Debug.setFocusable(false);
+        Debug.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        Debug.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        Debug.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                DebugActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(Debug);
+
+        getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
 
         javax.swing.GroupLayout viewPanelLayout = new javax.swing.GroupLayout(viewPanel);
         viewPanel.setLayout(viewPanelLayout);
         viewPanelLayout.setHorizontalGroup(
             viewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 388, Short.MAX_VALUE)
+            .addGap(0, 400, Short.MAX_VALUE)
         );
         viewPanelLayout.setVerticalGroup(
             viewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 267, Short.MAX_VALUE)
+            .addGap(0, 269, Short.MAX_VALUE)
         );
 
-        jMenu1.setText("File");
-
-        menuConnect.setText("Connect...");
-        menuConnect.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                menuConnectActionPerformed(evt);
-            }
-        });
-        jMenu1.add(menuConnect);
-
-        jMenuBar1.add(jMenu1);
-
-        jMenu2.setText("Edit");
-        jMenuBar1.add(jMenu2);
-
-        setJMenuBar(jMenuBar1);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(viewPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(viewPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+        getContentPane().add(viewPanel, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void menuConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuConnectActionPerformed
+    private void butConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butConnectActionPerformed
         JFileChooser jfc = new JFileChooser(new File(Global.homeDir, ".kube"));
         jfc.setApproveButtonText("Select");
         if (jfc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -235,7 +242,59 @@ public class Menu extends javax.swing.JFrame {
                 Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }//GEN-LAST:event_menuConnectActionPerformed
+    }//GEN-LAST:event_butConnectActionPerformed
+
+    private void butCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butCreateActionPerformed
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//            @Override
+//            public void run() {
+//                final DeployService dialog = new DeployService(new javax.swing.JFrame(), false);
+//                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+//                    @Override
+//                    public void windowClosing(java.awt.event.WindowEvent e) {
+//                        dialog.dispose();
+//                    }
+//                });
+//                dialog.setVisible(true);
+//            }
+//        });
+                /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(Application.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(Application.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(Application.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(Application.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new Application().setVisible(true);
+            }
+        });
+    }//GEN-LAST:event_butCreateActionPerformed
+
+    private void DebugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DebugActionPerformed
+        if (!Maps.items.isEmpty()){
+            ItemTree.main(new String[]{});
+        }
+    }//GEN-LAST:event_DebugActionPerformed
 
     /**
      * @param args the command line arguments
@@ -274,10 +333,10 @@ public class Menu extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem menuConnect;
+    private javax.swing.JButton Debug;
+    private javax.swing.JButton butConnect;
+    private javax.swing.JButton butCreate;
+    private javax.swing.JToolBar jToolBar1;
     private javax.swing.JPanel viewPanel;
     // End of variables declaration//GEN-END:variables
 }

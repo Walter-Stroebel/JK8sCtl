@@ -6,6 +6,7 @@ package nl.infcomtec.jk8sctl;
 import io.kubernetes.client.models.V1ContainerImage;
 import io.kubernetes.client.models.V1Node;
 import java.util.TreeMap;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
@@ -49,9 +50,15 @@ public class K8sNode extends AbstractMetadata {
     }
 
     @Override
-    public TreeMap<Integer, String> getRelations() {
-        TreeMap<Integer, String> ret = new TreeMap<>();
-        ret.put(0, "node");
+    public TreeMap<Integer, K8sRelation> getRelations() {
+        TreeMap<Integer, K8sRelation> ret = new TreeMap<>();
+        ret.put(0, new K8sRelation(false, 0, "node"));
+        return ret;
+    }
+
+    @Override
+    public DefaultMutableTreeNode getTree() {
+        DefaultMutableTreeNode ret = super.getTree();
         return ret;
     }
 

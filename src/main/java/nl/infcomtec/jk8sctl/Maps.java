@@ -20,6 +20,7 @@ import io.kubernetes.client.models.V1Pod;
 import io.kubernetes.client.models.V1PodList;
 import io.kubernetes.client.models.V1Service;
 import io.kubernetes.client.models.V1ServiceList;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentSkipListMap;
 import org.joda.time.DateTime;
@@ -32,12 +33,32 @@ public class Maps {
 
     public static final ConcurrentSkipListMap<Integer, Metadata> items = new ConcurrentSkipListMap<>();
     public static final ConcurrentSkipListMap<String, Integer> spaces = new ConcurrentSkipListMap<>();
+    public static final ConcurrentSkipListMap<String, TreeSet<Integer>> apps = new ConcurrentSkipListMap<>();
 
     private static void add(Metadata md) {
         items.put(md.getMapId(), md);
         if (md instanceof K8sNamespace) {
             spaces.put(md.getName(), md.getMapId());
+        } else if (md instanceof AbstractAppReference) {
+            AbstractAppReference ref = (AbstractAppReference) md;
+            if (null != ref.getApp()) {
+                String key = ref.getNamespace() + "." + ref.getApp();
+                TreeSet<Integer> set = apps.get(key);
+                if (null == set) {
+                    apps.put(key, set = new TreeSet<>());
+                }
+                set.add(md.getMapId());
+            }
         }
+    }
+
+    public static String[] getSpaces() {
+        String[] ret = new String[spaces.size()];
+        int i = 0;
+        for (String k : spaces.keySet()) {
+            ret[i++] = k;
+        }
+        return ret;
     }
 
     /**
@@ -51,13 +72,14 @@ public class Maps {
         synchronized (items) {
             items.clear();
             spaces.clear();
+            apps.clear();
             {
                 V1Namespace root = new V1Namespace();
                 V1ObjectMeta meta = new V1ObjectMeta();
                 meta.setName("(root)");
                 meta.setCreationTimestamp(new DateTime());
                 meta.setUid(UUID.randomUUID().toString());
-                meta.setNamespace("");                
+                meta.setNamespace("");
                 root.setApiVersion("n/a");
                 root.setKind("namespace");
                 root.setMetadata(meta);
