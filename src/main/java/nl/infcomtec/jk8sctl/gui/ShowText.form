@@ -41,7 +41,7 @@
             <Property name="rows" type="int" value="10"/>
           </Properties>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTextArea(yaml)"/>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTextArea(body)"/>
           </AuxValues>
         </Component>
       </SubComponents>

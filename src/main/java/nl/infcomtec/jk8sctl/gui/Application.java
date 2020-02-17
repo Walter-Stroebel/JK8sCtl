@@ -3,16 +3,14 @@
  */
 package nl.infcomtec.jk8sctl.gui;
 
-import io.kubernetes.client.models.V1Container;
-import io.kubernetes.client.models.V1PodSpec;
-import io.kubernetes.client.models.V1Volume;
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
+import javax.swing.table.AbstractTableModel;
+import nl.infcomtec.jk8sctl.K8sApplication;
 import nl.infcomtec.jk8sctl.K8sDeployment;
 import nl.infcomtec.jk8sctl.K8sPod;
 import nl.infcomtec.jk8sctl.Maps;
@@ -39,17 +37,27 @@ public class Application extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         jToolBar1 = new javax.swing.JToolBar();
         butClone = new javax.swing.JButton();
         cbCloneable = new javax.swing.JComboBox<>();
+        jSeparator6 = new javax.swing.JToolBar.Separator();
         butClear = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
         butApply = new javax.swing.JButton();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
         butDelete = new javax.swing.JButton();
+        jSeparator5 = new javax.swing.JToolBar.Separator();
         butYaml = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
+        jToolBar2 = new javax.swing.JToolBar();
+        jLabel9 = new javax.swing.JLabel();
+        typePod = new javax.swing.JRadioButton();
+        typeDeploy = new javax.swing.JRadioButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
+        chNamespace = new javax.swing.JCheckBox();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        butAddDetail = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         cbNamespace = new javax.swing.JComboBox<>();
         jLabel2 = new javax.swing.JLabel();
@@ -60,29 +68,15 @@ public class Application extends javax.swing.JFrame {
         tfDockArgs = new javax.swing.JTextField();
         lbDockCmd = new javax.swing.JLabel();
         tfDockCmd = new javax.swing.JTextField();
-        jLabel8 = new javax.swing.JLabel();
-        tfPorts = new javax.swing.JTextField();
-        jLabel9 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        typePod = new javax.swing.JRadioButton();
-        typeDeploy = new javax.swing.JRadioButton();
-        jPanel3 = new javax.swing.JPanel();
-        jLabel4 = new javax.swing.JLabel();
-        tfMountName = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
-        tfDestPath = new javax.swing.JTextField();
-        jLabel6 = new javax.swing.JLabel();
-        tfSrcPath = new javax.swing.JTextField();
-        jLabel7 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        taYaml = new javax.swing.JTextArea();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
 
-        butClone.setText("Clone");
+        butClone.setText("Clone ->");
         butClone.setFocusable(false);
         butClone.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         butClone.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -95,8 +89,9 @@ public class Application extends javax.swing.JFrame {
 
         cbCloneable.setModel(new javax.swing.DefaultComboBoxModel<>(CloneableObjects.asArray()));
         jToolBar1.add(cbCloneable);
+        jToolBar1.add(jSeparator6);
 
-        butClear.setText("Clear");
+        butClear.setText("Clear fields");
         butClear.setFocusable(false);
         butClear.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         butClear.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -106,20 +101,23 @@ public class Application extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butClear);
+        jToolBar1.add(jSeparator3);
 
         butApply.setText("Apply");
         butApply.setFocusable(false);
         butApply.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         butApply.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(butApply);
+        jToolBar1.add(jSeparator4);
 
         butDelete.setText("Delete");
         butDelete.setFocusable(false);
         butDelete.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         butDelete.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(butDelete);
+        jToolBar1.add(jSeparator5);
 
-        butYaml.setText("YAML");
+        butYaml.setText("Show YAML");
         butYaml.setToolTipText("Preview as Yaml");
         butYaml.setFocusable(false);
         butYaml.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -131,220 +129,110 @@ public class Application extends javax.swing.JFrame {
         });
         jToolBar1.add(butYaml);
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Application details"));
-        jPanel1.setLayout(new java.awt.GridBagLayout());
+        jToolBar2.setFloatable(false);
+        jToolBar2.setRollover(true);
 
-        jLabel1.setText("Namespace");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.ipadx = 40;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(jLabel1, gridBagConstraints);
-
-        cbNamespace.setEditable(true);
-        cbNamespace.setModel(new NamespaceModel());
-        cbNamespace.setToolTipText("Either a new namespace or pick an existing one");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(cbNamespace, gridBagConstraints);
-
-        jLabel2.setText("Application name");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(jLabel2, gridBagConstraints);
-
-        tfAppName.setToolTipText("Should be a short but descriptive unique name");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(tfAppName, gridBagConstraints);
-
-        jLabel3.setText("Docker image");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.ipadx = 26;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(jLabel3, gridBagConstraints);
-
-        tfDockImg.setToolTipText("For instance \"ubuntu:latest\" or \"osrm/osrm-backend\"");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(tfDockImg, gridBagConstraints);
-
-        jLabel10.setText("Docker args");
-        jLabel10.setToolTipText("Arguments to pass to Docker");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(jLabel10, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(tfDockArgs, gridBagConstraints);
-
-        lbDockCmd.setText("Docker command");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(lbDockCmd, gridBagConstraints);
-
-        tfDockCmd.setToolTipText("Optionally, depending on the application, the command line");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(tfDockCmd, gridBagConstraints);
-
-        jLabel8.setText("Service ports");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(jLabel8, gridBagConstraints);
-
-        tfPorts.setToolTipText("<html>\n<p>Enter as type source target [, source target]</p>\n<p>Where type is Nanything for NodePort and Lanything for LoadBalancer</p>\n<p>Examples</p>\n<p>N 80 8080,443 8443 <i>The letter N or L is sufficient</i></p>\n<p>LoadBalancer 80 8080,443 8433,5000 5000</p>\n</html>");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(tfPorts, gridBagConstraints);
-
-        jLabel9.setText("Generate as");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel1.add(jLabel9, gridBagConstraints);
-
-        jPanel2.setLayout(new javax.swing.BoxLayout(jPanel2, javax.swing.BoxLayout.LINE_AXIS));
+        jLabel9.setText("Generator settings -> ");
+        jToolBar2.add(jLabel9);
 
         buttonGroup1.add(typePod);
         typePod.setText("Pod");
+        typePod.setFocusable(false);
         typePod.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 typePodStateChanged(evt);
             }
         });
-        jPanel2.add(typePod);
+        jToolBar2.add(typePod);
 
         buttonGroup1.add(typeDeploy);
         typeDeploy.setSelected(true);
         typeDeploy.setText("Deployment");
+        typeDeploy.setFocusable(false);
+        typeDeploy.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         typeDeploy.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 typeDeployStateChanged(evt);
             }
         });
-        jPanel2.add(typeDeploy);
+        jToolBar2.add(typeDeploy);
+        jToolBar2.add(jSeparator1);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel1.add(jPanel2, gridBagConstraints);
+        chNamespace.setText("Generate namespace");
+        chNamespace.setFocusable(false);
+        chNamespace.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar2.add(chNamespace);
+        jToolBar2.add(jSeparator2);
 
-        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Mount point"));
-        java.awt.GridBagLayout jPanel3Layout = new java.awt.GridBagLayout();
-        jPanel3Layout.columnWidths = new int[] {300, 400};
-        jPanel3.setLayout(jPanel3Layout);
+        butAddDetail.setText("Add detail");
+        butAddDetail.setFocusable(false);
+        butAddDetail.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butAddDetail.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butAddDetail.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butAddDetailActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(butAddDetail);
 
-        jLabel4.setText("Mount name");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel3.add(jLabel4, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel3.add(tfMountName, gridBagConstraints);
+        jLabel1.setText("Namespace");
 
-        jLabel5.setText("Mount path in docker");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel3.add(jLabel5, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel3.add(tfDestPath, gridBagConstraints);
+        cbNamespace.setEditable(true);
+        cbNamespace.setModel(new NamespaceModel());
+        cbNamespace.setToolTipText("Either a new namespace or pick an existing one");
 
-        jLabel6.setText("Path on host (shared)");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel3.add(jLabel6, gridBagConstraints);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel3.add(tfSrcPath, gridBagConstraints);
+        jLabel2.setText("Application name");
 
-        jLabel7.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
-        jLabel7.setText("<html>\nThis tool only allows mounting a, probably shared, directory on the host in the container.\n<p>\nIn other words, this is either an empty directory or a common directory that is shared between all nodes.\n<p>\nHow the directory is shared is beyond the scope of this tool, NFS and SMB are obvious choices.\n</html>");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        jPanel3.add(jLabel7, gridBagConstraints);
+        tfAppName.setToolTipText("Should be a short but descriptive unique name");
 
-        taYaml.setColumns(40);
-        taYaml.setRows(5);
-        jScrollPane1.setViewportView(taYaml);
+        jLabel3.setText("Docker image");
+
+        tfDockImg.setToolTipText("For instance \"ubuntu:latest\" or \"osrm/osrm-backend\"");
+
+        jLabel10.setText("Docker args");
+        jLabel10.setToolTipText("Arguments to pass to Docker");
+
+        lbDockCmd.setText("Docker command");
+
+        tfDockCmd.setToolTipText("Optionally, depending on the application, the command line");
+
+        jTable1.setModel(new Details());
+        jTable1.setRowSelectionAllowed(false);
+        jScrollPane2.setViewportView(jTable1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jToolBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 704, Short.MAX_VALUE)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(6, 6, 6)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 780, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
+                                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(lbDockCmd, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                        .addGap(14, 14, 14)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(cbNamespace, javax.swing.GroupLayout.PREFERRED_SIZE, 610, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(tfAppName, javax.swing.GroupLayout.PREFERRED_SIZE, 610, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(tfDockImg, javax.swing.GroupLayout.PREFERRED_SIZE, 610, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(tfDockArgs, javax.swing.GroupLayout.PREFERRED_SIZE, 610, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(tfDockCmd, javax.swing.GroupLayout.PREFERRED_SIZE, 610, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jToolBar2, javax.swing.GroupLayout.PREFERRED_SIZE, 776, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 778, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -352,19 +240,46 @@ public class Application extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(2, 2, 2)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(5, 5, 5)
+                .addComponent(jToolBar2, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(5, 5, 5)
+                        .addComponent(jLabel1))
+                    .addComponent(cbNamespace, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(1, 1, 1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
+                        .addComponent(jLabel2))
+                    .addComponent(tfAppName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(6, 6, 6)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
+                        .addComponent(jLabel3))
+                    .addComponent(tfDockImg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(6, 6, 6)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
+                        .addComponent(jLabel10))
+                    .addComponent(tfDockArgs, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(6, 6, 6)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(tfDockCmd, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
+                        .addComponent(lbDockCmd)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(12, 12, 12)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1)
-                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
 
     private void butCloneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butCloneActionPerformed
         butClearActionPerformed(evt);
@@ -382,90 +297,169 @@ public class Application extends javax.swing.JFrame {
             Metadata item = Maps.items.get(ik);
             if (item instanceof K8sDeployment) {
                 K8sDeployment it = (K8sDeployment) item;
-                cbNamespace.setSelectedItem(it.getNamespace());
-                if (null != it.getApp()) {
-                    tfAppName.setText(it.getApp());
-                }
-            } else if (item instanceof K8sPod) {
-                K8sPod it = (K8sPod) item;
-                cbNamespace.setSelectedItem(it.getNamespace());
-                if (null != it.getApp()) {
-                    tfAppName.setText(it.getApp());
-                }
-                V1PodSpec spec = it.getK8s().getSpec();
-                if (null != spec) {
-                    List<V1Volume> volumes = spec.getVolumes();
-                    if (null != volumes) {
-                        for (V1Volume vol : volumes) {
-                            if (null != vol.getHostPath() && null != vol.getHostPath().getPath()) {
-                                tfSrcPath.setText(vol.getHostPath().getPath());
-                                if (null != vol.getName()) {
-                                    tfMountName.setText(vol.getName());
-                                }
-                            }
-                        }
-                    }
-                    List<V1Container> containers = spec.getContainers();
-                    if (null != containers) {
-                        for (V1Container con : containers) {
-                            List<String> command = con.getCommand();
-                            if (null != command) {
-                                StringBuilder sb = new StringBuilder();
-                                for (String s : command) {
-                                    if (sb.length() > 0) {
-                                        sb.append(' ');
-                                    }
-                                    sb.append(s);
-                                }
-                                tfDockCmd.setText(sb.toString());
-                            }
-                            List<String> args = con.getArgs();
-                            if (null != args) {
-                                StringBuilder sb = new StringBuilder();
-                                for (String s : args) {
-                                    if (sb.length() > 0) {
-                                        sb.append(' ');
-                                    }
-                                    sb.append(s);
-                                }
-                                tfDockArgs.setText(sb.toString());
-                            }
-                            if (null != con.getImage()) {
-                                tfDockImg.setText(con.getImage());
-                            }
-                        }
-                    }
+                application = new K8sApplication(it);
+            }
+        }
+        if (null == application) {
+            for (int ik : get) {
+                Metadata item = Maps.items.get(ik);
+                if (item instanceof K8sPod) {
+                    K8sPod it = (K8sPod) item;
+                    application = new K8sApplication(it);
                 }
             }
         }
-        taYaml.setText(toYamlString());
+        if (null != application) {
+            tfAppName.setText(application.appName);
+            {
+                StringBuilder sb = new StringBuilder();
+                for (String s : application.args) {
+                    sb.append(' ').append(s);
+                }
+                tfDockArgs.setText(sb.toString().trim());
+            }
+            {
+                StringBuilder sb = new StringBuilder();
+                for (String s : application.command) {
+                    sb.append(' ').append(s);
+                }
+                tfDockCmd.setText(sb.toString().trim());
+            }
+            tfDockImg.setText(application.image);
+            cbNamespace.setSelectedItem(application.namespace);
+        }
+        updateTable();
     }//GEN-LAST:event_butCloneActionPerformed
 
-    private void butYamlActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butYamlActionPerformed
-        taYaml.setText(toYamlString());
-    }//GEN-LAST:event_butYamlActionPerformed
+    private void updateTable() {
+        ((Details) jTable1.getModel()).fireTableDataChanged();
+    }
 
+    private void butYamlActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butYamlActionPerformed
+        tfAppName.setText(dnsClean(tfAppName.getText()));
+        cbNamespace.setSelectedItem(dnsClean((String) cbNamespace.getSelectedItem()));
+        ShowText.showText(tfAppName.getText().trim().isEmpty() ? "Untitled" : tfAppName.getText().trim(), toYamlString());
+    }//GEN-LAST:event_butYamlActionPerformed
+    private K8sApplication application;
+
+    private class Details extends AbstractTableModel {
+
+        @Override
+        public boolean isCellEditable(int rowIndex, int columnIndex) {
+            return true;
+        }
+
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            return String.class;
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            switch (column) {
+                case 0:
+                    return "Detail";
+                case 1:
+                    return "Name";
+                case 2:
+                    return "Source";
+                case 3:
+                    return "Target";
+            }
+            return "?";
+        }
+
+        @Override
+        public int getColumnCount() {
+            return 4;
+        }
+
+        @Override
+        public int getRowCount() {
+            if (null == application) {
+                return 0;
+            }
+            return application.details.size();
+        }
+
+        @Override
+        public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+            K8sApplication.Detail d = application.details.get(rowIndex);
+            switch (columnIndex) {
+                case 0: {
+                    String s = (String) aValue;
+                    if (null == s || s.isEmpty()) {
+                        d.type = "Remove";
+                    } else if (s.toUpperCase().startsWith("D")) {
+                        d.type = "DirectoryOrCreate";
+                    } else if (s.toUpperCase().startsWith("T")) {
+                        d.type = "TCP";
+                    } else if (s.toUpperCase().startsWith("U")) {
+                        d.type = "UDP";
+                    } else {
+                        d.type = "Remove";
+                    }
+                }
+                break;
+                case 1:
+                    d.name = (String) aValue;
+                    break;
+                case 2:
+                    d.source = (String) aValue;
+                    break;
+                case 3:
+                    d.target = (String) aValue;
+                    break;
+            }
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            K8sApplication.Detail d = application.details.get(rowIndex);
+            switch (columnIndex) {
+                case 0:
+                    return d.type;
+                case 1:
+                    return d.name;
+                case 2:
+                    return d.source;
+                case 3:
+                    return d.target;
+            }
+            return "?";
+        }
+
+    }
     private void butClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butClearActionPerformed
         tfAppName.setText("");
-        tfDestPath.setText("");
         tfDockArgs.setText("");
         tfDockCmd.setText("");
         tfDockImg.setText("");
-        tfMountName.setText("");
-        tfPorts.setText("");
-        tfSrcPath.setText("");
         cbCloneable.setSelectedItem("");
         cbNamespace.setSelectedItem("");
-        taYaml.setText(toYamlString());
+        application = null;
+        updateTable();
     }//GEN-LAST:event_butClearActionPerformed
 
     private void typePodStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_typePodStateChanged
-        butYamlActionPerformed(null);
+
     }//GEN-LAST:event_typePodStateChanged
 
     private void typeDeployStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_typeDeployStateChanged
-        butYamlActionPerformed(null);
+
     }//GEN-LAST:event_typeDeployStateChanged
+
+    private void butAddDetailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butAddDetailActionPerformed
+        if (null == application) {
+            application = new K8sApplication();
+        }
+        K8sApplication.Detail m = new K8sApplication.Detail();
+        m.name = "new";
+        m.source = "";
+        m.target = "";
+        application.details.add(m);
+        updateTable();
+    }//GEN-LAST:event_butAddDetailActionPerformed
 
     private String dnsClean(String namespace) {
         StringBuilder clean = new StringBuilder();
@@ -484,181 +478,43 @@ public class Application extends javax.swing.JFrame {
     }
 
     private String toYamlString() {
-        String namespace = "";
-        {
-            Object objNS = cbNamespace.getSelectedItem();
-            if (null != objNS && (objNS instanceof String)) {
-                namespace = ((String) objNS).trim();
-            }
-        }
-        namespace = dnsClean(namespace);
-        StringBuilder yaml = new StringBuilder();
-        if (!namespace.isEmpty()) {
-            yaml.append("apiVersion: v1\n");
-            yaml.append("kind: Namespace\n");
-            yaml.append("metadata:\n");
-            yaml.append("  name: ").append(namespace).append('\n');
-            yaml.append("\n---\n\n");
-        }
-        yaml.append("apiVersion: ").append(typeDeploy.isSelected() ? "apps/v1" : "v1").append('\n');
-        yaml.append("kind: ").append(typeDeploy.isSelected() ? "Deployment" : "Pod").append('\n');;
-        yaml.append("metadata:\n");
-        yaml.append("  name: ").append(tfAppName.getText()).append('\n');
-        if (!namespace.isEmpty()) {
-            yaml.append("  namespace: ").append(namespace).append('\n');
-        }
-        if (typeDeploy.isSelected()) {
-            yaml.append("  labels:\n");
-            yaml.append("    app: ").append(tfAppName.getText()).append('\n');
-        }
-        StringTokenizer ports = new StringTokenizer(tfPorts.getText(), ",");
-        ArrayList<int[]> pairs = new ArrayList<>();
-        String type = "NodePort";
-        try {
-            while (ports.hasMoreTokens()) {
-                StringTokenizer ps = new StringTokenizer(ports.nextToken(), " ");
-                int[] p = new int[2];
-                if (ps.hasMoreTokens()) {
-                    String tok = ps.nextToken();
-                    if (tok.toUpperCase().charAt(0) == 'N') {
-                        type = "NodePort";
-                        tok = tok.substring(1);
-                        if (tok.isEmpty()) {
-                            tok = ps.nextToken();
-                        }
-                    } else if (tok.toUpperCase().charAt(0) == 'L') {
-                        type = "LoadBalancer";
-                        tok = tok.substring(1);
-                        if (tok.isEmpty()) {
-                            tok = ps.nextToken();
-                        }
-                    }
-                    p[0] = Integer.parseInt(tok);
-                    if (ps.hasMoreTokens()) {
-                        p[1] = Integer.parseInt(ps.nextToken());
-                    } else {
-                        p[1] = p[0];
-                    }
-                    pairs.add(p);
-                }
-            }
-            tfPorts.setForeground(Color.black);
-        } catch (Exception any) {
-            tfPorts.setForeground(Color.red);
-        }
-        yaml.append("spec:\n");
-        if (typePod.isSelected()) {
-            yaml.append("  containers:\n");
-            yaml.append("  - name: ").append(tfAppName.getText()).append('\n');
-            yaml.append("    image: ").append(tfDockImg.getText()).append('\n');
-            {
-                StringTokenizer toker = new StringTokenizer(tfDockCmd.getText(), " ");
-                if (toker.hasMoreTokens()) {
-                    yaml.append("    command:\n");
-                    while (toker.hasMoreTokens()) {
-                        yaml.append("    - \"").append(toker.nextToken()).append("\"\n");
-                    }
-                }
-            }
-            {
-                StringTokenizer toker = new StringTokenizer(tfDockArgs.getText(), " ");
-                if (toker.hasMoreTokens()) {
-                    yaml.append("    args:\n");
-                    while (toker.hasMoreTokens()) {
-                        yaml.append("    - \"").append(toker.nextToken()).append("\"\n");
-                    }
-                }
-            }
-            if (!pairs.isEmpty()) {
-                yaml.append("    ports:\n");
-                for (int[] p : pairs) {
-                    yaml.append("    - containerPort: ").append(p[1]).append('\n');
-                }
-            }
-            if (!tfMountName.getText().isEmpty()) {
-                yaml.append("    volumeMounts:\n");
-                yaml.append("    - name: ").append(tfMountName.getText()).append('\n');
-                yaml.append("      mountPath: ").append(tfDestPath.getText()).append('\n');
-            }
-            yaml.append("  restartPolicy: Always\n");
-            if (!tfMountName.getText().isEmpty()) {
-                yaml.append("  volumes:\n");
-                yaml.append("    - name: ").append(tfMountName.getText()).append('\n');
-                yaml.append("      hostPath:\n");
-                yaml.append("        path: ").append(tfSrcPath.getText()).append('\n');
-                yaml.append("        type: DirectoryOrCreate\n");
-            }
+        if (null == application) {
+            application = new K8sApplication();
         } else {
-            yaml.append("  replicas: 1\n");
-            yaml.append("  selector:\n");
-            yaml.append("    matchLabels:\n");
-            yaml.append("      app: ").append(tfAppName.getText()).append('\n');
-            yaml.append("  template:\n");
-            yaml.append("    metadata:\n");
-            yaml.append("      labels:\n");
-            yaml.append("        app: ").append(tfAppName.getText()).append('\n');
-            yaml.append("    spec:\n");
-            yaml.append("      containers:\n");
-            yaml.append("      - name: ").append(tfAppName.getText()).append('\n');
-            yaml.append("        image: ").append(tfDockImg.getText()).append('\n');
-            {
-                StringTokenizer toker = new StringTokenizer(tfDockCmd.getText(), " ");
-                if (toker.hasMoreTokens()) {
-                    yaml.append("        command:\n");
-                    while (toker.hasMoreTokens()) {
-                        yaml.append("        - \"").append(toker.nextToken()).append("\"\n");
-                    }
+            for (Iterator<K8sApplication.Detail> it = application.details.iterator(); it.hasNext();) {
+                K8sApplication.Detail d = it.next();
+                if (null == d.type || d.type.isEmpty()) {
+                    it.remove();
+                } else if (d.type.toUpperCase().startsWith("D")) {
+                    d.type = "DirectoryOrCreate";
+                } else if (d.type.toUpperCase().startsWith("T")) {
+                    d.type = "TCP";
+                } else if (d.type.toUpperCase().startsWith("U")) {
+                    d.type = "UDP";
+                } else {
+                    it.remove();
                 }
-            }
-            {
-                StringTokenizer toker = new StringTokenizer(tfDockArgs.getText(), " ");
-                if (toker.hasMoreTokens()) {
-                    yaml.append("        args:\n");
-                    while (toker.hasMoreTokens()) {
-                        yaml.append("        - \"").append(toker.nextToken()).append("\"\n");
-                    }
-                }
-            }
-            if (!pairs.isEmpty()) {
-                yaml.append("        ports:\n");
-                for (int[] p : pairs) {
-                    yaml.append("        - containerPort: ").append(p[1]).append('\n');
-                }
-            }
-            if (!tfMountName.getText().isEmpty()) {
-                yaml.append("        volumeMounts:\n");
-                yaml.append("        - name: ").append(tfMountName.getText()).append('\n');
-                yaml.append("          mountPath: ").append(tfDestPath.getText()).append('\n');
-            }
-            if (!tfMountName.getText().isEmpty()) {
-                yaml.append("      volumes:\n");
-                yaml.append("        - name: ").append(tfMountName.getText()).append('\n');
-                yaml.append("          hostPath:\n");
-                yaml.append("            path: ").append(tfSrcPath.getText()).append('\n');
-                yaml.append("            type: DirectoryOrCreate\n");
             }
         }
-        if (!pairs.isEmpty()) {
-            yaml.append("\n---\n\n");
-            yaml.append("apiVersion: v1\n");
-            yaml.append("kind: Service\n");
-            yaml.append("metadata:\n");
-            yaml.append("  name: ").append(tfAppName.getText()).append('\n');
-            if (!namespace.isEmpty()) {
-                yaml.append("  namespace: ").append(namespace).append('\n');
+        application.appName = tfAppName.getText();
+        application.args = new LinkedList<>();
+        {
+            StringTokenizer toker = new StringTokenizer(tfDockArgs.getText(), " ");
+            while (toker.hasMoreTokens()) {
+                application.args.add(toker.nextToken());
             }
-            yaml.append("spec:\n");
-            yaml.append("  ports:\n");
-            for (int[] p : pairs) {
-                yaml.append("  - name: ").append(tfAppName.getText()).append('-').append(p[0]).append('\n');
-                yaml.append("    port: ").append(p[0]).append('\n');
-                yaml.append("    targetPort: ").append(p[1]).append('\n');
-            }
-            yaml.append("  selector:\n");
-            yaml.append("    app: ").append(tfAppName.getText()).append('\n');
-            yaml.append("  type: ").append(type).append('\n');
         }
-        return yaml.toString();
+        application.command = new LinkedList<>();
+        {
+            StringTokenizer toker = new StringTokenizer(tfDockCmd.getText(), " ");
+            while (toker.hasMoreTokens()) {
+                application.command.add(toker.nextToken());
+            }
+        }
+        application.image=tfDockImg.getText();
+        application.namespace=(String) cbNamespace.getSelectedItem();
+        updateTable();
+        return application.toYaml(typeDeploy.isSelected(), chNamespace.isSelected());
     }
 
     /**
@@ -705,6 +561,7 @@ public class Application extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton butAddDetail;
     private javax.swing.JButton butApply;
     private javax.swing.JButton butClear;
     private javax.swing.JButton butClone;
@@ -713,31 +570,27 @@ public class Application extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JComboBox<String> cbCloneable;
     private javax.swing.JComboBox<String> cbNamespace;
+    private javax.swing.JCheckBox chNamespace;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator4;
+    private javax.swing.JToolBar.Separator jSeparator5;
+    private javax.swing.JToolBar.Separator jSeparator6;
+    private javax.swing.JTable jTable1;
     private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JToolBar jToolBar2;
     private javax.swing.JLabel lbDockCmd;
-    private javax.swing.JTextArea taYaml;
     private javax.swing.JTextField tfAppName;
-    public javax.swing.JTextField tfDestPath;
     private javax.swing.JTextField tfDockArgs;
     private javax.swing.JTextField tfDockCmd;
     private javax.swing.JTextField tfDockImg;
-    public javax.swing.JTextField tfMountName;
-    private javax.swing.JTextField tfPorts;
-    public javax.swing.JTextField tfSrcPath;
     private javax.swing.JRadioButton typeDeploy;
     private javax.swing.JRadioButton typePod;
     // End of variables declaration//GEN-END:variables

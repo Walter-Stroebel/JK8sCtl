@@ -50,6 +50,7 @@ public class K8sDeployment extends AbstractAppReference {
         return null;
     }
     
+    @Override
     public TreeMap<Integer, K8sRelation> getRelations() {
         TreeMap<Integer, K8sRelation> ret = new TreeMap<>();
         {
@@ -72,6 +73,8 @@ public class K8sDeployment extends AbstractAppReference {
     @Override
     public DefaultMutableTreeNode getTree() {
         DefaultMutableTreeNode ret = super.getTree();
+        dumpBean(k8s.getSpec(), "spec", ret);
+        dumpBean(k8s.getStatus(), "status", ret);
         return ret;
     }
 

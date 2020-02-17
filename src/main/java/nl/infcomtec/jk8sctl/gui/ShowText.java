@@ -9,14 +9,19 @@ package nl.infcomtec.jk8sctl.gui;
  */
 public class ShowText extends javax.swing.JFrame {
 
-    private final String yaml;
+    private final String body;
+    private final String title;
 
     /**
      * Creates new form ShowText
+     * @param title
+     * @param body
      */
-    public ShowText(String yaml) {
-        this.yaml=yaml;
+    public ShowText(String title, String yaml) {
+        this.body = yaml;
+        this.title = title;
         initComponents();
+        setTitle(title);
     }
 
     /**
@@ -29,7 +34,7 @@ public class ShowText extends javax.swing.JFrame {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jta = new javax.swing.JTextArea(yaml);
+        jta = new javax.swing.JTextArea(body);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Text");
@@ -45,7 +50,7 @@ public class ShowText extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    public static void showText(final String text) {
+    public static void showText(final String title,final String text) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -73,7 +78,7 @@ public class ShowText extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new ShowText(text).setVisible(true);
+                new ShowText(title,text).setVisible(true);
             }
         });
     }
