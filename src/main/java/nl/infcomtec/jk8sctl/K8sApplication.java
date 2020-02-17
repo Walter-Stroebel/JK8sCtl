@@ -11,6 +11,7 @@ import io.kubernetes.client.models.V1PodSpec;
 import io.kubernetes.client.models.V1PodTemplateSpec;
 import io.kubernetes.client.models.V1Volume;
 import io.kubernetes.client.models.V1VolumeMount;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -20,12 +21,14 @@ import java.util.List;
  */
 public class K8sApplication {
 
-    private Detail getMount(String name) {
+    private Detail removeMount(String name) {
         if (null == details || details.isEmpty()) {
             return null;
         }
-        for (Detail d : details) {
+        for (Iterator<Detail> it = details.iterator(); it.hasNext();) {
+            Detail d = it.next();
             if (d.isMount() && name.equals(d.name)) {
+                it.remove();
                 return d;
             }
         }
@@ -278,7 +281,7 @@ public class K8sApplication {
         List<V1VolumeMount> volumeMounts = cont.getVolumeMounts();
         if (null != volumeMounts) {
             for (V1VolumeMount m : volumeMounts) {
-                Detail mnt = getMount(m.getName());
+                Detail mnt = removeMount(m.getName());
                 if (null == mnt) {
                     mnt = new Detail();
                 }
@@ -290,7 +293,7 @@ public class K8sApplication {
         List<V1Volume> volumes = pod.getVolumes();
         if (null != volumes) {
             for (V1Volume v : volumes) {
-                Detail mnt = getMount(v.getName());
+                Detail mnt = removeMount(v.getName());
                 if (null == mnt) {
                     mnt = new Detail();
                 }

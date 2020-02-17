@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.table.AbstractTableModel;
@@ -15,6 +17,7 @@ import nl.infcomtec.jk8sctl.K8sDeployment;
 import nl.infcomtec.jk8sctl.K8sPod;
 import nl.infcomtec.jk8sctl.Maps;
 import nl.infcomtec.jk8sctl.Metadata;
+import nl.infcomtec.jk8sctl.RunKubeCtl;
 
 /**
  *
@@ -107,6 +110,11 @@ public class Application extends javax.swing.JFrame {
         butApply.setFocusable(false);
         butApply.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         butApply.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butApply.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butApplyActionPerformed(evt);
+            }
+        });
         jToolBar1.add(butApply);
         jToolBar1.add(jSeparator4);
 
@@ -460,6 +468,14 @@ public class Application extends javax.swing.JFrame {
         application.details.add(m);
         updateTable();
     }//GEN-LAST:event_butAddDetailActionPerformed
+
+    private void butApplyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butApplyActionPerformed
+        try {
+            RunKubeCtl.apply(toYamlString());
+        } catch (Exception ex) {
+            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_butApplyActionPerformed
 
     private String dnsClean(String namespace) {
         StringBuilder clean = new StringBuilder();

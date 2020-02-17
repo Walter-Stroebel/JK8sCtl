@@ -60,7 +60,7 @@ public class Global {
     public static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger("GLOBAL");
 
     static ApiClient getK8sClient() throws IOException {
-        if (null==getK8sConfig()) {
+        if (null == getK8sConfig()) {
             return Config.defaultClient();
         } else {
             return Config.fromConfig(getK8sConfig());
@@ -73,16 +73,18 @@ public class Global {
 
     public static File getYamlDir() {
         File ret = new File(getConfig().yamlDir);
-        if (ret.exists()) return ret;
+        if (ret.exists()) {
+            return ret;
+        }
         return new File(System.getProperty("user.home"));
     }
 
-    public static Icon getIcon(String name){
-        String imageLocation="/icons/"+name+"24.gif";
+    public static Icon getIcon(String name) {
+        String imageLocation = "/icons/" + name + "24.gif";
         URL imageURL = Global.class.getResource(imageLocation);
         return new ImageIcon(imageURL, name);
     }
-    
+
     public static K8sCtlCfg loadConfig() {
         try {
             config = K8sCtlCfg.loadConfig();
@@ -94,7 +96,7 @@ public class Global {
 
     public static void setYamlDir(File parentFile) {
         try {
-            getConfig().yamlDir=parentFile.getCanonicalPath();
+            getConfig().yamlDir = parentFile.getCanonicalPath();
             getConfig().saveConfig();
         } catch (IOException ex) {
             Logger.getLogger(Global.class.getName()).log(Level.SEVERE, null, ex);
@@ -111,6 +113,11 @@ public class Global {
         LOG.warn(String.format(format, parms));
     }
 
+    /**
+     * Best guess at the kubectl program to use.
+     *
+     * @return Best guess at the kubectl program to use.
+     */
     public static String kubeCtlPrg() {
         return getConfig().kubeCtlProgam;
     }
