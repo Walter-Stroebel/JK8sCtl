@@ -122,6 +122,11 @@ public class Application extends javax.swing.JFrame {
         butDelete.setFocusable(false);
         butDelete.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         butDelete.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butDeleteActionPerformed(evt);
+            }
+        });
         jToolBar1.add(butDelete);
         jToolBar1.add(jSeparator5);
 
@@ -477,6 +482,10 @@ public class Application extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_butApplyActionPerformed
 
+    private void butDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butDeleteActionPerformed
+        Armageddon.main(new String[]{});
+    }//GEN-LAST:event_butDeleteActionPerformed
+
     private String dnsClean(String namespace) {
         StringBuilder clean = new StringBuilder();
         for (char c : namespace.toCharArray()) {
@@ -515,20 +524,46 @@ public class Application extends javax.swing.JFrame {
         application.appName = tfAppName.getText();
         application.args = new LinkedList<>();
         {
-            StringTokenizer toker = new StringTokenizer(tfDockArgs.getText(), " ");
+            StringTokenizer toker = new StringTokenizer(tfDockArgs.getText(), " \"", true);
+            StringBuilder quoted = null;
             while (toker.hasMoreTokens()) {
-                application.args.add(toker.nextToken());
+                String tok = toker.nextToken();
+                if (null != quoted) {
+                    if (tok.equals("\"")) {
+                        application.args.add(quoted.toString());
+                        quoted = null;
+                    } else {
+                        quoted.append(tok);
+                    }
+                } else if (tok.equals("\"")) {
+                    quoted = new StringBuilder();
+                } else if (!tok.equals(" ")) {
+                    application.args.add(tok);
+                }
             }
         }
         application.command = new LinkedList<>();
         {
-            StringTokenizer toker = new StringTokenizer(tfDockCmd.getText(), " ");
+            StringTokenizer toker = new StringTokenizer(tfDockCmd.getText(), " \"");
+            StringBuilder quoted = null;
             while (toker.hasMoreTokens()) {
-                application.command.add(toker.nextToken());
+                String tok = toker.nextToken();
+                if (null != quoted) {
+                    if (tok.equals("\"")) {
+                        application.command.add(quoted.toString());
+                        quoted = null;
+                    } else {
+                        quoted.append(tok);
+                    }
+                } else if (tok.equals("\"")) {
+                    quoted = new StringBuilder();
+                } else if (!tok.equals(" ")) {
+                    application.command.add(tok);
+                }
             }
         }
-        application.image=tfDockImg.getText();
-        application.namespace=(String) cbNamespace.getSelectedItem();
+        application.image = tfDockImg.getText();
+        application.namespace = (String) cbNamespace.getSelectedItem();
         updateTable();
         return application.toYaml(typeDeploy.isSelected(), chNamespace.isSelected());
     }

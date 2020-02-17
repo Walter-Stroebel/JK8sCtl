@@ -52,7 +52,6 @@ public class K8sNode extends AbstractMetadata {
     @Override
     public TreeMap<Integer, K8sRelation> getRelations() {
         TreeMap<Integer, K8sRelation> ret = new TreeMap<>();
-        ret.put(0, new K8sRelation(false, 0, "node"));
         return ret;
     }
 

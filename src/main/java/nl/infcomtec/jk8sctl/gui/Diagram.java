@@ -1,0 +1,338 @@
+/*
+ *  Copyright (c) 2018 by Walter Stroebel and InfComTec.
+ */
+package nl.infcomtec.jk8sctl.gui;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.TreeSet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.swing.JPanel;
+import nl.infcomtec.jk8sctl.K8sRelation;
+import nl.infcomtec.jk8sctl.Maps;
+import nl.infcomtec.jk8sctl.Metadata;
+
+/**
+ *
+ * @author walter
+ */
+public class Diagram extends javax.swing.JFrame {
+
+    /**
+     * Creates new form Menu
+     */
+    public Diagram() {
+        initComponents();
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    viewPanel.invalidate();
+                    viewPanel.repaint();
+                } catch (Exception ex) {
+                    Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }, 10, 10, TimeUnit.SECONDS);
+    }
+
+    private class ViewPanel extends JPanel {
+
+        @Override
+        public void paint(Graphics _g) {
+            int w = getWidth();
+            int h = getHeight();
+            if (Maps.items.isEmpty()) {
+                BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g = bi.createGraphics();
+                g.setColor(Color.ORANGE);
+                g.fillRect(0, 0, w, h);
+                g.setColor(Color.BLACK);
+                g.drawLine(0, 0, w - 1, h - 1);
+                g.drawLine(0, h - 1, w - 1, 0);
+                g.dispose();
+                _g.drawImage(bi, 0, 0, null);
+            } else {
+                try {
+                    final StringBuilder dot = new StringBuilder();
+                    dot.append("strict digraph {\nrankdir=\"LR\";\nnode [shape=plaintext]\n");
+                    TreeSet<Integer> uniq = new TreeSet<>();
+                    for (Metadata item : Maps.items.values()) {
+                        switch (item.getKind()) {
+                            case "namespace":
+                                if (!chNamespaces.isSelected()) continue;
+                                break;
+                            case "deployment":
+                                if (!chDeployments.isSelected()) continue;
+                                break;
+                            case "pod":
+                                if (!chPods.isSelected()) continue;
+                                break;
+                            case "service":
+                                if (!chServices.isSelected()) continue;
+                                break;
+                            case "endpoints":
+                                if (!chEndpoints.isSelected()) continue;
+                                break;
+                            case "node":
+                                if (!chNodes.isSelected()) continue;
+                                break;
+                        }
+                        dot.append(item.getDotNode());
+                        draw(item.getMapId(), uniq, dot);
+                    }
+                    dot.append("}\n");
+                    draw(dot, _g, w, h);
+                } catch (Exception any) {
+                    Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, any);
+                }
+            }
+        }
+
+        private void draw(Integer mapId, TreeSet<Integer> uniq, final StringBuilder dot) {
+            if (!uniq.add(mapId)) {
+                return;
+            }
+            Metadata item = Maps.items.get(mapId);
+            for (Map.Entry<Integer, K8sRelation> m : item.getRelations().entrySet()) {
+                switch(m.getValue().label){
+                    case "deployment":
+                        if (!chDeployments.isSelected())continue;
+                        break;
+                    case "pod":
+                        if (!chPods.isSelected())continue;
+                        break;
+                    case "namespace":
+                    case "ns":
+                    case "":
+                        if (!chNamespaces.isSelected())continue;
+                        break;
+                    case "service":
+                        if (!chServices.isSelected())continue;
+                        break;
+                    case "node":
+                        if (!chNodes.isSelected())continue;
+                        break;
+                    case "endpoints":
+                        if (!chEndpoints.isSelected())continue;
+                        break;
+                }
+                Metadata link = Maps.items.get(m.getValue().other);
+                if (m.getValue().isTo) {
+                    dot.append(item.getDotNodeName()).append(" -> ").append(link.getDotNodeName()).append(m.getValue().toString());
+                } else {
+                    dot.append(link.getDotNodeName()).append(" -> ").append(item.getDotNodeName()).append(m.getValue().toString());
+                }
+                draw(m.getKey(), uniq, dot);
+            }
+        }
+
+        private void draw(final StringBuilder dot, Graphics _g, int w, int h) throws InterruptedException, IOException {
+            //System.out.println(dot);
+            ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng");
+            pb.redirectError(new File("/dev/null"));
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            final Process p = pb.start();
+            Thread t1 = new Thread() {
+                @Override
+                public void run() {
+                    while (true) {
+                        try {
+                            int c = p.getInputStream().read();
+                            if (c >= 0) {
+                                baos.write(c);
+                            } else {
+                                break;
+                            }
+                        } catch (IOException ex) {
+                            Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
+                            return;
+                        }
+                    }
+                    try {
+                        p.getInputStream().close();
+                        baos.close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            };
+            Thread t2 = new Thread() {
+                @Override
+                public void run() {
+                    for (int i = 0; i < dot.length(); i++) {
+                        try {
+                            p.getOutputStream().write(dot.charAt(i));
+                        } catch (IOException ex) {
+                            Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
+                            return;
+                        }
+                    }
+                    try {
+                        p.getOutputStream().close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            };
+            t1.start();
+            t2.start();
+            t2.join();
+            t1.join();
+            p.waitFor();
+            BufferedImage png = ImageIO.read(new ByteArrayInputStream(baos.toByteArray()));
+            _g.drawImage(png.getScaledInstance(w, h, BufferedImage.SCALE_SMOOTH), 0, 0, null);
+        }
+
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        viewPanel = new ViewPanel();
+        jToolBar1 = new javax.swing.JToolBar();
+        chNamespaces = new javax.swing.JCheckBox();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
+        chDeployments = new javax.swing.JCheckBox();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        chPods = new javax.swing.JCheckBox();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        chNodes = new javax.swing.JCheckBox();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
+        chServices = new javax.swing.JCheckBox();
+        jSeparator5 = new javax.swing.JToolBar.Separator();
+        chEndpoints = new javax.swing.JCheckBox();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Cluster diagram");
+
+        javax.swing.GroupLayout viewPanelLayout = new javax.swing.GroupLayout(viewPanel);
+        viewPanel.setLayout(viewPanelLayout);
+        viewPanelLayout.setHorizontalGroup(
+            viewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 671, Short.MAX_VALUE)
+        );
+        viewPanelLayout.setVerticalGroup(
+            viewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 264, Short.MAX_VALUE)
+        );
+
+        getContentPane().add(viewPanel, java.awt.BorderLayout.CENTER);
+
+        jToolBar1.setFloatable(false);
+        jToolBar1.setRollover(true);
+
+        chNamespaces.setSelected(true);
+        chNamespaces.setText("Namespaces");
+        chNamespaces.setFocusable(false);
+        chNamespaces.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(chNamespaces);
+        jToolBar1.add(jSeparator1);
+
+        chDeployments.setSelected(true);
+        chDeployments.setText("Deployments");
+        chDeployments.setFocusable(false);
+        chDeployments.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(chDeployments);
+        jToolBar1.add(jSeparator2);
+
+        chPods.setSelected(true);
+        chPods.setText("Pods");
+        chPods.setFocusable(false);
+        chPods.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(chPods);
+        jToolBar1.add(jSeparator3);
+
+        chNodes.setSelected(true);
+        chNodes.setText("Nodes");
+        chNodes.setFocusable(false);
+        chNodes.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(chNodes);
+        jToolBar1.add(jSeparator4);
+
+        chServices.setText("Services");
+        chServices.setFocusable(false);
+        chServices.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(chServices);
+        jToolBar1.add(jSeparator5);
+
+        chEndpoints.setText("Endpoints");
+        chEndpoints.setFocusable(false);
+        chEndpoints.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(chEndpoints);
+
+        getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(Diagram.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(Diagram.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(Diagram.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(Diagram.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new Diagram().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox chDeployments;
+    private javax.swing.JCheckBox chEndpoints;
+    private javax.swing.JCheckBox chNamespaces;
+    private javax.swing.JCheckBox chNodes;
+    private javax.swing.JCheckBox chPods;
+    private javax.swing.JCheckBox chServices;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator4;
+    private javax.swing.JToolBar.Separator jSeparator5;
+    private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JPanel viewPanel;
+    // End of variables declaration//GEN-END:variables
+}

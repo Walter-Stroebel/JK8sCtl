@@ -15,6 +15,10 @@ public class RunKubeCtl {
 
     public static void apply(String yaml) throws Exception {
         ProcessBuilder pb = new ProcessBuilder(Global.kubeCtlPrg(), "apply", "-f", "-");
+        run(pb, yaml, "kubectl apply");
+    }
+
+    private static void run(ProcessBuilder pb, String yaml, String action) throws Exception {
         final Process p = pb.start();
         final StringBuilder in = new StringBuilder();
         final StringBuilder err = new StringBuilder();
@@ -50,8 +54,10 @@ public class RunKubeCtl {
             }
         };
         t2.start();
-        p.getOutputStream().write(yaml.getBytes(StandardCharsets.UTF_8));
-        p.getOutputStream().write('\n');
+        if (null != yaml) {
+            p.getOutputStream().write(yaml.getBytes(StandardCharsets.UTF_8));
+            p.getOutputStream().write('\n');
+        }
         p.getOutputStream().close();
         t1.join();
         t2.join();
@@ -64,6 +70,16 @@ public class RunKubeCtl {
         }
         msg.append("\nReturn code: ").append(ret);
         System.out.println(msg);
-        JOptionPane.showMessageDialog(null, msg.toString(), "kubectl apply", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(null, msg.toString(), action, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public static void delete(Metadata selected) throws Exception {
+        ProcessBuilder pb;
+        if (!selected.getNamespace().isEmpty()) {
+            pb = new ProcessBuilder(Global.kubeCtlPrg(), "delete", selected.getKind(), "-n", selected.getNamespace(), selected.getName());
+        } else {
+            pb = new ProcessBuilder(Global.kubeCtlPrg(), "delete", selected.getKind(), selected.getName());
+        }
+        run(pb, null, "kubectl delete");
     }
 }

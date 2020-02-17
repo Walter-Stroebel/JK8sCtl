@@ -42,8 +42,6 @@ public class Menu extends javax.swing.JFrame {
             public void run() {
                 try {
                     Maps.collect();
-                    viewPanel.invalidate();
-                    viewPanel.repaint();
                 } catch (Exception ex) {
                     Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -170,9 +168,14 @@ public class Menu extends javax.swing.JFrame {
 
         jToolBar1 = new javax.swing.JToolBar();
         butConnect = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
         butCreate = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        butDelete = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
         Debug = new javax.swing.JButton();
-        viewPanel = new ViewPanel();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
+        butDiagram = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Kubernetes Tools by InfComTec");
@@ -189,6 +192,7 @@ public class Menu extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butConnect);
+        jToolBar1.add(jSeparator1);
 
         butCreate.setText("Create");
         butCreate.setFocusable(false);
@@ -200,6 +204,19 @@ public class Menu extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butCreate);
+        jToolBar1.add(jSeparator2);
+
+        butDelete.setText("Delete");
+        butDelete.setFocusable(false);
+        butDelete.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butDelete.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butDeleteActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(butDelete);
+        jToolBar1.add(jSeparator3);
 
         Debug.setText("Debug");
         Debug.setFocusable(false);
@@ -211,21 +228,20 @@ public class Menu extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(Debug);
+        jToolBar1.add(jSeparator4);
+
+        butDiagram.setText("Diagram");
+        butDiagram.setFocusable(false);
+        butDiagram.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butDiagram.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butDiagram.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butDiagramActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(butDiagram);
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
-
-        javax.swing.GroupLayout viewPanelLayout = new javax.swing.GroupLayout(viewPanel);
-        viewPanel.setLayout(viewPanelLayout);
-        viewPanelLayout.setHorizontalGroup(
-            viewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        viewPanelLayout.setVerticalGroup(
-            viewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 269, Short.MAX_VALUE)
-        );
-
-        getContentPane().add(viewPanel, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -296,10 +312,23 @@ public class Menu extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_DebugActionPerformed
 
+    private void butDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butDeleteActionPerformed
+        Armageddon.main(new String[]{});
+    }//GEN-LAST:event_butDeleteActionPerformed
+
+    private void butDiagramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butDiagramActionPerformed
+        Diagram.main(null);
+    }//GEN-LAST:event_butDiagramActionPerformed
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
+        try {
+            Maps.collect();
+        } catch (Exception ex) {
+            // we tried
+        }
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -336,7 +365,12 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JButton Debug;
     private javax.swing.JButton butConnect;
     private javax.swing.JButton butCreate;
+    private javax.swing.JButton butDelete;
+    private javax.swing.JButton butDiagram;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar jToolBar1;
-    private javax.swing.JPanel viewPanel;
     // End of variables declaration//GEN-END:variables
 }

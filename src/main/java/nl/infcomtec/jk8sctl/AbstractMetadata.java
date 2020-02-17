@@ -174,6 +174,12 @@ public abstract class AbstractMetadata implements Metadata {
         return ret;
     }
 
+    @Override
+    public String toString() {
+        if (kind.equals("namespace")) return kind+":"+getName();
+        else return kind+":"+getNSName();
+    }
+
     protected void post(StringBuilder sb) {
         sb.append("</TABLE>>];\n");
     }

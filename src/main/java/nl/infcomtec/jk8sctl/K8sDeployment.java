@@ -63,7 +63,7 @@ public class K8sDeployment extends AbstractAppReference {
         if (null != app) {
             for (Metadata md : Maps.items.values()) {
                 if (!md.getKind().equals(getKind()) && md.getNamespace().equals(getNamespace()) && md.getName().equals(app)) {                    
-                    ret.put(md.getMapId(), new K8sRelation(true, md.getMapId(), "depl"));
+                    ret.put(md.getMapId(), new K8sRelation(true, md.getMapId(), md.getKind()));
                 }
             }
         }

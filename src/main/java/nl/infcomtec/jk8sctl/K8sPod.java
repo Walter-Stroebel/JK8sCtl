@@ -65,7 +65,7 @@ public class K8sPod extends AbstractAppReference {
         if (null != app) {
             for (Metadata md : Maps.items.values()) {
                 if (!md.getKind().equals(getKind()) && md.getNamespace().equals(getNamespace()) && md.getName().equals(app)) {
-                    ret.put(md.getMapId(), new K8sRelation(false, md.getMapId(), "pod"));
+                    ret.put(md.getMapId(), new K8sRelation(false, md.getMapId(), md.getKind()));
                 }
             }
         }
@@ -73,7 +73,7 @@ public class K8sPod extends AbstractAppReference {
             String nn = getNodeName();
             for (Metadata md : Maps.items.values()) {
                 if (md.getKind().equals("node") && md.getName().equals(nn)) {
-                    ret.put(md.getMapId(), new K8sRelation(false, md.getMapId(), "node"));
+                    ret.put(md.getMapId(), new K8sRelation(false, md.getMapId(), md.getKind()));
                 }
             }
         }
@@ -83,6 +83,8 @@ public class K8sPod extends AbstractAppReference {
     @Override
     public StringBuilder getDotNode() {
         StringBuilder ret = pre();
+        if (null!=getApp())
+        ret.append("<TR><TD>").append("app").append("</TD><TD>").append(getApp()).append("</TD></TR>");
         post(ret);
         return ret;
     }
