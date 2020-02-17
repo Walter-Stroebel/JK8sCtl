@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.Executors;
@@ -18,7 +19,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import nl.infcomtec.jk8sctl.Global;
 import nl.infcomtec.jk8sctl.K8sRelation;
 import nl.infcomtec.jk8sctl.Maps;
 import nl.infcomtec.jk8sctl.Metadata;
@@ -47,6 +51,50 @@ public class Diagram extends javax.swing.JFrame {
         }, 10, 10, TimeUnit.SECONDS);
     }
 
+    private StringBuilder genDot() {
+        final StringBuilder dot = new StringBuilder();
+        dot.append("strict digraph {\nrankdir=\"LR\";\nnode [shape=plaintext]\n");
+        TreeSet<Integer> uniq = new TreeSet<>();
+        for (Metadata item : Maps.items.values()) {
+            switch (item.getKind()) {
+                case "namespace":
+                    if (!chNamespaces.isSelected()) {
+                        continue;
+                    }
+                    break;
+                case "deployment":
+                    if (!chDeployments.isSelected()) {
+                        continue;
+                    }
+                    break;
+                case "pod":
+                    if (!chPods.isSelected()) {
+                        continue;
+                    }
+                    break;
+                case "service":
+                    if (!chServices.isSelected()) {
+                        continue;
+                    }
+                    break;
+                case "endpoints":
+                    if (!chEndpoints.isSelected()) {
+                        continue;
+                    }
+                    break;
+                case "node":
+                    if (!chNodes.isSelected()) {
+                        continue;
+                    }
+                    break;
+            }
+            dot.append(item.getDotNode());
+            draw(item.getMapId(), uniq, dot);
+        }
+        dot.append("}\n");
+        return dot;
+    }
+
     private class ViewPanel extends JPanel {
 
         @Override
@@ -65,34 +113,7 @@ public class Diagram extends javax.swing.JFrame {
                 _g.drawImage(bi, 0, 0, null);
             } else {
                 try {
-                    final StringBuilder dot = new StringBuilder();
-                    dot.append("strict digraph {\nrankdir=\"LR\";\nnode [shape=plaintext]\n");
-                    TreeSet<Integer> uniq = new TreeSet<>();
-                    for (Metadata item : Maps.items.values()) {
-                        switch (item.getKind()) {
-                            case "namespace":
-                                if (!chNamespaces.isSelected()) continue;
-                                break;
-                            case "deployment":
-                                if (!chDeployments.isSelected()) continue;
-                                break;
-                            case "pod":
-                                if (!chPods.isSelected()) continue;
-                                break;
-                            case "service":
-                                if (!chServices.isSelected()) continue;
-                                break;
-                            case "endpoints":
-                                if (!chEndpoints.isSelected()) continue;
-                                break;
-                            case "node":
-                                if (!chNodes.isSelected()) continue;
-                                break;
-                        }
-                        dot.append(item.getDotNode());
-                        draw(item.getMapId(), uniq, dot);
-                    }
-                    dot.append("}\n");
+                    StringBuilder dot = genDot();
                     draw(dot, _g, w, h);
                 } catch (Exception any) {
                     Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, any);
@@ -100,101 +121,112 @@ public class Diagram extends javax.swing.JFrame {
             }
         }
 
-        private void draw(Integer mapId, TreeSet<Integer> uniq, final StringBuilder dot) {
-            if (!uniq.add(mapId)) {
-                return;
-            }
-            Metadata item = Maps.items.get(mapId);
-            for (Map.Entry<Integer, K8sRelation> m : item.getRelations().entrySet()) {
-                switch(m.getValue().label){
-                    case "deployment":
-                        if (!chDeployments.isSelected())continue;
-                        break;
-                    case "pod":
-                        if (!chPods.isSelected())continue;
-                        break;
-                    case "namespace":
-                    case "ns":
-                    case "":
-                        if (!chNamespaces.isSelected())continue;
-                        break;
-                    case "service":
-                        if (!chServices.isSelected())continue;
-                        break;
-                    case "node":
-                        if (!chNodes.isSelected())continue;
-                        break;
-                    case "endpoints":
-                        if (!chEndpoints.isSelected())continue;
-                        break;
-                }
-                Metadata link = Maps.items.get(m.getValue().other);
-                if (m.getValue().isTo) {
-                    dot.append(item.getDotNodeName()).append(" -> ").append(link.getDotNodeName()).append(m.getValue().toString());
-                } else {
-                    dot.append(link.getDotNodeName()).append(" -> ").append(item.getDotNodeName()).append(m.getValue().toString());
-                }
-                draw(m.getKey(), uniq, dot);
-            }
-        }
+    }
 
-        private void draw(final StringBuilder dot, Graphics _g, int w, int h) throws InterruptedException, IOException {
-            //System.out.println(dot);
-            ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng");
-            pb.redirectError(new File("/dev/null"));
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            final Process p = pb.start();
-            Thread t1 = new Thread() {
-                @Override
-                public void run() {
-                    while (true) {
-                        try {
-                            int c = p.getInputStream().read();
-                            if (c >= 0) {
-                                baos.write(c);
-                            } else {
-                                break;
-                            }
-                        } catch (IOException ex) {
-                            Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
-                            return;
-                        }
+    private void draw(Integer mapId, TreeSet<Integer> uniq, final StringBuilder dot) {
+        if (!uniq.add(mapId)) {
+            return;
+        }
+        Metadata item = Maps.items.get(mapId);
+        for (Map.Entry<Integer, K8sRelation> m : item.getRelations().entrySet()) {
+            switch (m.getValue().label) {
+                case "deployment":
+                    if (!chDeployments.isSelected()) {
+                        continue;
                     }
+                    break;
+                case "pod":
+                    if (!chPods.isSelected()) {
+                        continue;
+                    }
+                    break;
+                case "namespace":
+                case "ns":
+                case "":
+                    if (!chNamespaces.isSelected()) {
+                        continue;
+                    }
+                    break;
+                case "service":
+                    if (!chServices.isSelected()) {
+                        continue;
+                    }
+                    break;
+                case "node":
+                    if (!chNodes.isSelected()) {
+                        continue;
+                    }
+                    break;
+                case "endpoints":
+                    if (!chEndpoints.isSelected()) {
+                        continue;
+                    }
+                    break;
+            }
+            Metadata link = Maps.items.get(m.getValue().other);
+            if (m.getValue().isTo) {
+                dot.append(item.getDotNodeName()).append(" -> ").append(link.getDotNodeName()).append(m.getValue().toString());
+            } else {
+                dot.append(link.getDotNodeName()).append(" -> ").append(item.getDotNodeName()).append(m.getValue().toString());
+            }
+            draw(m.getKey(), uniq, dot);
+        }
+    }
+
+    private void draw(final StringBuilder dot, Graphics _g, int w, int h) throws Exception {
+        ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng");
+        pb.redirectError(new File("/dev/null"));
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final Process p = pb.start();
+        Thread t1 = new Thread() {
+            @Override
+            public void run() {
+                while (true) {
                     try {
-                        p.getInputStream().close();
-                        baos.close();
+                        int c = p.getInputStream().read();
+                        if (c >= 0) {
+                            baos.write(c);
+                        } else {
+                            break;
+                        }
                     } catch (IOException ex) {
                         Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
+                        return;
                     }
                 }
-            };
-            Thread t2 = new Thread() {
-                @Override
-                public void run() {
-                    for (int i = 0; i < dot.length(); i++) {
-                        try {
-                            p.getOutputStream().write(dot.charAt(i));
-                        } catch (IOException ex) {
-                            Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
-                            return;
-                        }
-                    }
+                try {
+                    p.getInputStream().close();
+                    baos.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        };
+        Thread t2 = new Thread() {
+            @Override
+            public void run() {
+                for (int i = 0; i < dot.length(); i++) {
                     try {
-                        p.getOutputStream().close();
+                        p.getOutputStream().write(dot.charAt(i));
                     } catch (IOException ex) {
                         Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
+                        return;
                     }
                 }
-            };
-            t1.start();
-            t2.start();
-            t2.join();
-            t1.join();
-            p.waitFor();
-            BufferedImage png = ImageIO.read(new ByteArrayInputStream(baos.toByteArray()));
-            _g.drawImage(png.getScaledInstance(w, h, BufferedImage.SCALE_SMOOTH), 0, 0, null);
-        }
-
+                try {
+                    p.getOutputStream().close();
+                } catch (IOException ex) {
+                    Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        };
+        t1.start();
+        t2.start();
+        t2.join();
+        t1.join();
+        p.waitFor();
+        BufferedImage png = ImageIO.read(new ByteArrayInputStream(baos.toByteArray()));
+        _g.drawImage(png.getScaledInstance(w, h, BufferedImage.SCALE_SMOOTH), 0, 0, null);
     }
 
     /**
@@ -219,6 +251,8 @@ public class Diagram extends javax.swing.JFrame {
         chServices = new javax.swing.JCheckBox();
         jSeparator5 = new javax.swing.JToolBar.Separator();
         chEndpoints = new javax.swing.JCheckBox();
+        jSeparator6 = new javax.swing.JToolBar.Separator();
+        butExportDOT = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Cluster diagram");
@@ -227,7 +261,7 @@ public class Diagram extends javax.swing.JFrame {
         viewPanel.setLayout(viewPanelLayout);
         viewPanelLayout.setHorizontalGroup(
             viewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 671, Short.MAX_VALUE)
+            .addGap(0, 763, Short.MAX_VALUE)
         );
         viewPanelLayout.setVerticalGroup(
             viewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -277,11 +311,37 @@ public class Diagram extends javax.swing.JFrame {
         chEndpoints.setFocusable(false);
         chEndpoints.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(chEndpoints);
+        jToolBar1.add(jSeparator6);
+
+        butExportDOT.setText("Export DOT");
+        butExportDOT.setFocusable(false);
+        butExportDOT.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butExportDOT.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butExportDOT.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butExportDOTActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(butExportDOT);
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void butExportDOTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butExportDOTActionPerformed
+        JFileChooser jfc = new JFileChooser(Global.homeDir);
+        jfc.setDialogTitle("Export SVG...");
+        jfc.setFileFilter(new FileNameExtensionFilter("GraphViz files", "dot", "DOT"));
+        int ans = jfc.showSaveDialog(this);
+        if (ans == JFileChooser.APPROVE_OPTION) {
+            try (PrintWriter pw = new PrintWriter(jfc.getSelectedFile())){
+                pw.print(genDot());
+            } catch (Exception ex) {
+                Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }//GEN-LAST:event_butExportDOTActionPerformed
 
     /**
      * @param args the command line arguments
@@ -321,6 +381,7 @@ public class Diagram extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton butExportDOT;
     private javax.swing.JCheckBox chDeployments;
     private javax.swing.JCheckBox chEndpoints;
     private javax.swing.JCheckBox chNamespaces;
@@ -332,6 +393,7 @@ public class Diagram extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
+    private javax.swing.JToolBar.Separator jSeparator6;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JPanel viewPanel;
     // End of variables declaration//GEN-END:variables
