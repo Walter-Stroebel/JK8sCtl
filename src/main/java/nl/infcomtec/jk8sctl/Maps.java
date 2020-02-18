@@ -18,6 +18,8 @@ import io.kubernetes.client.models.V1NodeList;
 import io.kubernetes.client.models.V1ObjectMeta;
 import io.kubernetes.client.models.V1Pod;
 import io.kubernetes.client.models.V1PodList;
+import io.kubernetes.client.models.V1ReplicationController;
+import io.kubernetes.client.models.V1ReplicationControllerList;
 import io.kubernetes.client.models.V1Service;
 import io.kubernetes.client.models.V1ServiceList;
 import java.util.TreeSet;
@@ -118,12 +120,20 @@ public class Maps {
                         add(new K8sEndpoints(items.size(), item));
                     }
                 }
+                {
+                    V1ReplicationControllerList list = api.listReplicationControllerForAllNamespaces(null, null, null, null, null, null, null, null, null);
+                    for (V1ReplicationController item:list.getItems()){
+                        add(new K8sReplicationController(items.size(), item));
+                    }
+                }
             }
-            AppsV1Api api = new AppsV1Api();
             {
-                V1DeploymentList list = api.listDeploymentForAllNamespaces(null, null, null, null, null, null, null, null, null);
-                for (V1Deployment item : list.getItems()) {
-                    add(new K8sDeployment(items.size(), item));
+                AppsV1Api api = new AppsV1Api();
+                {
+                    V1DeploymentList list = api.listDeploymentForAllNamespaces(null, null, null, null, null, null, null, null, null);
+                    for (V1Deployment item : list.getItems()) {
+                        add(new K8sDeployment(items.size(), item));
+                    }
                 }
             }
         }

@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import nl.infcomtec.jk8sctl.Global;
 import nl.infcomtec.jk8sctl.K8sCtlCfg;
@@ -176,10 +177,23 @@ public class Menu extends javax.swing.JFrame {
         Debug = new javax.swing.JButton();
         jSeparator4 = new javax.swing.JToolBar.Separator();
         butDiagram = new javax.swing.JButton();
+        jSeparator5 = new javax.swing.JToolBar.Separator();
+        butYamlEditor = new javax.swing.JButton();
+        jSeparator6 = new javax.swing.JToolBar.Separator();
+        jToolBar2 = new javax.swing.JToolBar();
+        butLoadConfig = new javax.swing.JButton();
+        jSeparator9 = new javax.swing.JToolBar.Separator();
+        butSaveConfig = new javax.swing.JButton();
+        jSeparator7 = new javax.swing.JToolBar.Separator();
+        butResetConfig = new javax.swing.JButton();
+        jSeparator8 = new javax.swing.JToolBar.Separator();
+        butEditConfig = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Kubernetes Tools by InfComTec");
+        getContentPane().setLayout(new java.awt.GridLayout(0, 1));
 
+        jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
 
         butConnect.setText("Connect");
@@ -240,8 +254,73 @@ public class Menu extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butDiagram);
+        jToolBar1.add(jSeparator5);
 
-        getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
+        butYamlEditor.setText("YAML editor");
+        butYamlEditor.setFocusable(false);
+        butYamlEditor.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butYamlEditor.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butYamlEditor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butYamlEditorActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(butYamlEditor);
+        jToolBar1.add(jSeparator6);
+
+        getContentPane().add(jToolBar1);
+
+        jToolBar2.setFloatable(false);
+        jToolBar2.setRollover(true);
+
+        butLoadConfig.setText("Load config");
+        butLoadConfig.setFocusable(false);
+        butLoadConfig.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butLoadConfig.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butLoadConfig.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butLoadConfigActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(butLoadConfig);
+        jToolBar2.add(jSeparator9);
+
+        butSaveConfig.setText("Save config");
+        butSaveConfig.setFocusable(false);
+        butSaveConfig.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butSaveConfig.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butSaveConfig.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butSaveConfigActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(butSaveConfig);
+        jToolBar2.add(jSeparator7);
+
+        butResetConfig.setText("Reset config");
+        butResetConfig.setFocusable(false);
+        butResetConfig.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butResetConfig.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butResetConfig.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butResetConfigActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(butResetConfig);
+        jToolBar2.add(jSeparator8);
+
+        butEditConfig.setText("Edit config");
+        butEditConfig.setFocusable(false);
+        butEditConfig.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butEditConfig.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butEditConfig.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butEditConfigActionPerformed(evt);
+            }
+        });
+        jToolBar2.add(butEditConfig);
+
+        getContentPane().add(jToolBar2);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -274,7 +353,7 @@ public class Menu extends javax.swing.JFrame {
 //                dialog.setVisible(true);
 //            }
 //        });
-                /* Set the Nimbus look and feel */
+        /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
@@ -307,7 +386,7 @@ public class Menu extends javax.swing.JFrame {
     }//GEN-LAST:event_butCreateActionPerformed
 
     private void DebugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DebugActionPerformed
-        if (!Maps.items.isEmpty()){
+        if (!Maps.items.isEmpty()) {
             ItemTree.main(new String[]{});
         }
     }//GEN-LAST:event_DebugActionPerformed
@@ -319,6 +398,36 @@ public class Menu extends javax.swing.JFrame {
     private void butDiagramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butDiagramActionPerformed
         Diagram.main(null);
     }//GEN-LAST:event_butDiagramActionPerformed
+
+    private void butYamlEditorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butYamlEditorActionPerformed
+        YamlEditor.main(null);
+    }//GEN-LAST:event_butYamlEditorActionPerformed
+
+    private void butSaveConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butSaveConfigActionPerformed
+        try {
+            Global.getConfig().saveConfig();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.toString());
+            Logger.getLogger(YamlEditor.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_butSaveConfigActionPerformed
+
+    private void butResetConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butResetConfigActionPerformed
+        try {
+            K8sCtlCfg.defaults().saveConfig();
+            Global.loadConfig();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.toString());
+        }
+    }//GEN-LAST:event_butResetConfigActionPerformed
+
+    private void butEditConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butEditConfigActionPerformed
+        EditText.showText(K8sCtlCfg.getConfigFile(), Global.gson.toJson(Global.getConfig()));
+    }//GEN-LAST:event_butEditConfigActionPerformed
+
+    private void butLoadConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butLoadConfigActionPerformed
+        Global.loadConfig();
+    }//GEN-LAST:event_butLoadConfigActionPerformed
 
     /**
      * @param args the command line arguments
@@ -367,10 +476,21 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JButton butCreate;
     private javax.swing.JButton butDelete;
     private javax.swing.JButton butDiagram;
+    private javax.swing.JButton butEditConfig;
+    private javax.swing.JButton butLoadConfig;
+    private javax.swing.JButton butResetConfig;
+    private javax.swing.JButton butSaveConfig;
+    private javax.swing.JButton butYamlEditor;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
+    private javax.swing.JToolBar.Separator jSeparator5;
+    private javax.swing.JToolBar.Separator jSeparator6;
+    private javax.swing.JToolBar.Separator jSeparator7;
+    private javax.swing.JToolBar.Separator jSeparator8;
+    private javax.swing.JToolBar.Separator jSeparator9;
     private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JToolBar jToolBar2;
     // End of variables declaration//GEN-END:variables
 }

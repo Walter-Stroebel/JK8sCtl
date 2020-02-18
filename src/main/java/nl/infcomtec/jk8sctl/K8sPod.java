@@ -4,6 +4,7 @@
 package nl.infcomtec.jk8sctl;
 
 import io.kubernetes.client.models.V1Pod;
+import io.kubernetes.client.models.V1PodSpec;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -50,6 +51,11 @@ public class K8sPod extends AbstractAppReference {
             return lbs.get("k8s-app");
         }
         return null;
+    }
+
+    @Override
+    public V1PodSpec getPodSpec() {
+        return k8s.getSpec();
     }
 
     @Override

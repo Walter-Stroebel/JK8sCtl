@@ -3,10 +3,12 @@
  */
 package nl.infcomtec.jk8sctl;
 
+import io.kubernetes.client.models.V1PodSpec;
 import io.kubernetes.client.models.V1Service;
 import io.kubernetes.client.models.V1ServiceSpec;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -27,6 +29,28 @@ public class K8sService extends AbstractAppReference {
      */
     public V1Service getK8s() {
         return k8s;
+    }
+
+    @Override
+    public V1PodSpec getPodSpec() {
+        if (null!=getApp()){
+            TreeSet<Integer> get = Maps.apps.get(getApp());
+            for (int sp:get){
+                Metadata item = Maps.items.get(sp);
+                if (null!=item){
+                    if (item instanceof K8sDeployment) {
+                        return ((K8sDeployment) item).getPodSpec();
+                    }
+                    if (item instanceof K8sReplicationController) {
+                        return ((K8sReplicationController) item).getPodSpec();
+                    }
+                    if (item instanceof K8sPod) {
+                        return ((K8sPod) item).getPodSpec();
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     @Override

@@ -56,9 +56,12 @@ public class K8sCtlCfg {
         return ret;
     }
 
+    public static File getConfigFile(){
+        return new File(Global.workDir, "config.json");
+    }
     public static K8sCtlCfg loadConfig() throws IOException {
         Global.workDir.mkdirs();
-        File f = new File(Global.workDir, "config.json");
+        File f = getConfigFile();
         if (!f.exists()) {
             Global.warn("Using default configuration, '%s' not found", f.getCanonicalPath());
             return defaults();
@@ -82,7 +85,7 @@ public class K8sCtlCfg {
 
     public void saveConfig() throws IOException {
         Global.workDir.mkdirs();
-        try (FileWriter writer = new FileWriter(new File(Global.workDir, "config.json"))) {
+        try (FileWriter writer = new FileWriter(getConfigFile())) {
             Global.gson.toJson(this, writer);
             writer.append('\n');
         }

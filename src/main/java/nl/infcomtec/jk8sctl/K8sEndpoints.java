@@ -7,9 +7,11 @@ import io.kubernetes.client.models.V1EndpointAddress;
 import io.kubernetes.client.models.V1EndpointPort;
 import io.kubernetes.client.models.V1EndpointSubset;
 import io.kubernetes.client.models.V1Endpoints;
+import io.kubernetes.client.models.V1PodSpec;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -50,6 +52,28 @@ public class K8sEndpoints extends AbstractAppReference {
         }
         if (lbs.containsKey("k8s-app")) {
             return lbs.get("k8s-app");
+        }
+        return null;
+    }
+
+    @Override
+    public V1PodSpec getPodSpec() {
+        if (null!=getApp()){
+            TreeSet<Integer> get = Maps.apps.get(getApp());
+            for (int sp:get){
+                Metadata item = Maps.items.get(sp);
+                if (null!=item){
+                    if (item instanceof K8sDeployment) {
+                        return ((K8sDeployment) item).getPodSpec();
+                    }
+                    if (item instanceof K8sReplicationController) {
+                        return ((K8sReplicationController) item).getPodSpec();
+                    }
+                    if (item instanceof K8sPod) {
+                        return ((K8sPod) item).getPodSpec();
+                    }
+                }
+            }
         }
         return null;
     }

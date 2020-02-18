@@ -15,6 +15,7 @@ import javax.swing.table.AbstractTableModel;
 import nl.infcomtec.jk8sctl.K8sApplication;
 import nl.infcomtec.jk8sctl.K8sDeployment;
 import nl.infcomtec.jk8sctl.K8sPod;
+import nl.infcomtec.jk8sctl.K8sReplicationController;
 import nl.infcomtec.jk8sctl.Maps;
 import nl.infcomtec.jk8sctl.Metadata;
 import nl.infcomtec.jk8sctl.RunKubeCtl;
@@ -57,7 +58,8 @@ public class Application extends javax.swing.JFrame {
         jLabel9 = new javax.swing.JLabel();
         typePod = new javax.swing.JRadioButton();
         typeDeploy = new javax.swing.JRadioButton();
-        jSeparator1 = new javax.swing.JToolBar.Separator();
+        typeReplCtrl = new javax.swing.JRadioButton();
+        jSeparator7 = new javax.swing.JToolBar.Separator();
         chNamespace = new javax.swing.JCheckBox();
         jSeparator2 = new javax.swing.JToolBar.Separator();
         butAddDetail = new javax.swing.JButton();
@@ -169,7 +171,13 @@ public class Application extends javax.swing.JFrame {
             }
         });
         jToolBar2.add(typeDeploy);
-        jToolBar2.add(jSeparator1);
+
+        buttonGroup1.add(typeReplCtrl);
+        typeReplCtrl.setText("ReplCtrl");
+        typeReplCtrl.setFocusable(false);
+        typeReplCtrl.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar2.add(typeReplCtrl);
+        jToolBar2.add(jSeparator7);
 
         chNamespace.setText("Generate namespace");
         chNamespace.setFocusable(false);
@@ -311,6 +319,13 @@ public class Application extends javax.swing.JFrame {
             if (item instanceof K8sDeployment) {
                 K8sDeployment it = (K8sDeployment) item;
                 application = new K8sApplication(it);
+                typeDeploy.setSelected(true);
+                break;
+            } else if (item instanceof K8sReplicationController) {
+                K8sReplicationController it = (K8sReplicationController) item;
+                application = new K8sApplication(it);
+                typeReplCtrl.setSelected(true);
+                break;
             }
         }
         if (null == application) {
@@ -319,6 +334,8 @@ public class Application extends javax.swing.JFrame {
                 if (item instanceof K8sPod) {
                     K8sPod it = (K8sPod) item;
                     application = new K8sApplication(it);
+                    typePod.setSelected(true);
+                    break;
                 }
             }
         }
@@ -565,7 +582,13 @@ public class Application extends javax.swing.JFrame {
         application.image = tfDockImg.getText();
         application.namespace = (String) cbNamespace.getSelectedItem();
         updateTable();
-        return application.toYaml(typeDeploy.isSelected(), chNamespace.isSelected());
+        if (typePod.isSelected()) {
+            return application.toYaml(K8sApplication.Templates.Pod, chNamespace.isSelected());
+        } else if (typeDeploy.isSelected()) {
+            return application.toYaml(K8sApplication.Templates.Deployment, chNamespace.isSelected());
+        } else {
+            return application.toYaml(K8sApplication.Templates.ReplicationController, chNamespace.isSelected());
+        }
     }
 
     /**
@@ -628,12 +651,12 @@ public class Application extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
     private javax.swing.JToolBar.Separator jSeparator5;
     private javax.swing.JToolBar.Separator jSeparator6;
+    private javax.swing.JToolBar.Separator jSeparator7;
     private javax.swing.JTable jTable1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
@@ -644,5 +667,6 @@ public class Application extends javax.swing.JFrame {
     private javax.swing.JTextField tfDockImg;
     private javax.swing.JRadioButton typeDeploy;
     private javax.swing.JRadioButton typePod;
+    private javax.swing.JRadioButton typeReplCtrl;
     // End of variables declaration//GEN-END:variables
 }

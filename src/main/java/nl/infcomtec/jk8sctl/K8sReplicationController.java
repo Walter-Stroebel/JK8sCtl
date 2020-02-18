@@ -3,10 +3,10 @@
  */
 package nl.infcomtec.jk8sctl;
 
-import io.kubernetes.client.models.V1Deployment;
-import io.kubernetes.client.models.V1DeploymentSpec;
 import io.kubernetes.client.models.V1PodSpec;
 import io.kubernetes.client.models.V1PodTemplateSpec;
+import io.kubernetes.client.models.V1ReplicationController;
+import io.kubernetes.client.models.V1ReplicationControllerSpec;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -15,17 +15,43 @@ import javax.swing.tree.DefaultMutableTreeNode;
  *
  * @author walter
  */
-public class K8sDeployment extends AbstractAppReference {
+public class K8sReplicationController extends AbstractAppReference {
 
-    private final V1Deployment k8s;
+    private final V1ReplicationController k8s;
 
-    public K8sDeployment(int mapId, V1Deployment k8s) {
-        super(mapId, "deployment", k8s.getMetadata());
+    public K8sReplicationController(int mapId, V1ReplicationController k8s) {
+        super(mapId, "ReplicationController", k8s.getMetadata());
         this.k8s = k8s;
     }
 
     @Override
-    public String getApp() {
+    public V1PodSpec getPodSpec() {
+        V1ReplicationControllerSpec spec = k8s.getSpec();
+        if (null != spec) {
+            V1PodTemplateSpec template = spec.getTemplate();
+            if (null != template) {
+                return template.getSpec();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public StringBuilder getDotNode() {
+        StringBuilder ret = pre();
+        post(ret);
+        return ret;
+    }
+
+    /**
+     * @return the k8s
+     */
+    public V1ReplicationController getK8s() {
+        return k8s;
+    }
+    
+    @Override
+    public String getApp() {        
         Map<String, String> lbs = k8s.getMetadata().getLabels();
         if (null == lbs) {
             return null;
@@ -38,26 +64,7 @@ public class K8sDeployment extends AbstractAppReference {
         }
         return null;
     }
-
-    @Override
-    public StringBuilder getDotNode() {
-        StringBuilder ret = pre();
-        post(ret);
-        return ret;
-    }
-
-    @Override
-    public V1PodSpec getPodSpec() {
-        V1DeploymentSpec spec = k8s.getSpec();
-        if (null != spec) {
-            V1PodTemplateSpec template = spec.getTemplate();
-            if (null != template) {
-                return template.getSpec();
-            }
-        }
-        return null;
-    }
-
+    
     @Override
     public TreeMap<Integer, K8sRelation> getRelations() {
         TreeMap<Integer, K8sRelation> ret = new TreeMap<>();
@@ -70,7 +77,7 @@ public class K8sDeployment extends AbstractAppReference {
         String app = getApp();
         if (null != app) {
             for (Metadata md : Maps.items.values()) {
-                if (!md.getKind().equals(getKind()) && md.getNamespace().equals(getNamespace()) && md.getName().equals(app)) {
+                if (!md.getKind().equals(getKind()) && md.getNamespace().equals(getNamespace()) && md.getName().equals(app)) {                    
                     ret.put(md.getMapId(), new K8sRelation(true, md.getMapId(), md.getKind()));
                 }
             }
@@ -85,13 +92,5 @@ public class K8sDeployment extends AbstractAppReference {
         dumpBean(k8s.getStatus(), "status", ret);
         return ret;
     }
-
-    /**
-     * @return the k8s
-     */
-    public V1Deployment getK8s() {
-        return k8s;
-    }
-    
 
 }
