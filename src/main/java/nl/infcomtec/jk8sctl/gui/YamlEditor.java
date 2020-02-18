@@ -5,15 +5,11 @@ package nl.infcomtec.jk8sctl.gui;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.StringWriter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 import nl.infcomtec.jk8sctl.Global;
-import nl.infcomtec.jk8sctl.K8sCtlCfg;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -42,7 +38,6 @@ public class YamlEditor extends javax.swing.JFrame {
 
         tabsYaml = new javax.swing.JTabbedPane();
         jToolBar1 = new javax.swing.JToolBar();
-        jLabel1 = new javax.swing.JLabel();
         butOpen = new javax.swing.JButton();
         butSave = new javax.swing.JButton();
         butClose = new javax.swing.JButton();
@@ -51,10 +46,6 @@ public class YamlEditor extends javax.swing.JFrame {
         butPack = new javax.swing.JButton();
         butDelete = new javax.swing.JButton();
         butRestore = new javax.swing.JButton();
-        jSeparator1 = new javax.swing.JToolBar.Separator();
-        jLabel2 = new javax.swing.JLabel();
-        butSaveConfig = new javax.swing.JButton();
-        butResetConfig = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("JK8sCtl YAML Editor");
@@ -71,9 +62,6 @@ public class YamlEditor extends javax.swing.JFrame {
 
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
-
-        jLabel1.setText("YAML:");
-        jToolBar1.add(jLabel1);
 
         butOpen.setText("Open");
         butOpen.setToolTipText("Open a YAML file");
@@ -175,32 +163,6 @@ public class YamlEditor extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butRestore);
-        jToolBar1.add(jSeparator1);
-
-        jLabel2.setText("Config:");
-        jToolBar1.add(jLabel2);
-
-        butSaveConfig.setText("Save");
-        butSaveConfig.setFocusable(false);
-        butSaveConfig.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        butSaveConfig.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        butSaveConfig.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                butSaveConfigActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(butSaveConfig);
-
-        butResetConfig.setText("Reset");
-        butResetConfig.setFocusable(false);
-        butResetConfig.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        butResetConfig.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        butResetConfig.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                butResetConfigActionPerformed(evt);
-            }
-        });
-        jToolBar1.add(butResetConfig);
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.NORTH);
 
@@ -331,24 +293,6 @@ public class YamlEditor extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_butPackActionPerformed
 
-    private void butSaveConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butSaveConfigActionPerformed
-        try {
-            Global.getConfig().saveConfig();
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.toString());
-            Logger.getLogger(YamlEditor.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }//GEN-LAST:event_butSaveConfigActionPerformed
-
-    private void butResetConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butResetConfigActionPerformed
-        try {
-            K8sCtlCfg.defaults().saveConfig();
-            Global.loadConfig();
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this, "Error: " + ex.toString());
-        }
-    }//GEN-LAST:event_butResetConfigActionPerformed
-
     private void butDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butDeleteActionPerformed
         YamlFile sel = currentYaml();
         if (null == sel) {
@@ -440,13 +384,8 @@ public class YamlEditor extends javax.swing.JFrame {
     private javax.swing.JButton butOpen;
     private javax.swing.JButton butPack;
     private javax.swing.JButton butPaste;
-    private javax.swing.JButton butResetConfig;
     private javax.swing.JButton butRestore;
     private javax.swing.JButton butSave;
-    private javax.swing.JButton butSaveConfig;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JTabbedPane tabsYaml;
     // End of variables declaration//GEN-END:variables

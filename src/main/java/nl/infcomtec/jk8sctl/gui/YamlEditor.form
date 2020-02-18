@@ -58,11 +58,6 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout"/>
       <SubComponents>
-        <Component class="javax.swing.JLabel" name="jLabel1">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="YAML:"/>
-          </Properties>
-        </Component>
         <Component class="javax.swing.JButton" name="butOpen">
           <Properties>
             <Property name="text" type="java.lang.String" value="Open"/>
@@ -162,35 +157,6 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="butRestoreActionPerformed"/>
-          </Events>
-        </Component>
-        <Component class="javax.swing.JToolBar$Separator" name="jSeparator1">
-        </Component>
-        <Component class="javax.swing.JLabel" name="jLabel2">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Config:"/>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JButton" name="butSaveConfig">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Save"/>
-            <Property name="focusable" type="boolean" value="false"/>
-            <Property name="horizontalTextPosition" type="int" value="0"/>
-            <Property name="verticalTextPosition" type="int" value="3"/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="butSaveConfigActionPerformed"/>
-          </Events>
-        </Component>
-        <Component class="javax.swing.JButton" name="butResetConfig">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Reset"/>
-            <Property name="focusable" type="boolean" value="false"/>
-            <Property name="horizontalTextPosition" type="int" value="0"/>
-            <Property name="verticalTextPosition" type="int" value="3"/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="butResetConfigActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>
