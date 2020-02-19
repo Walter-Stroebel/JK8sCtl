@@ -7,7 +7,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.util.Config;
+import io.kubernetes.client.util.KubeConfig;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Level;
@@ -59,16 +61,23 @@ public class Global {
      */
     public static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger("GLOBAL");
 
-    static ApiClient getK8sClient() throws IOException {
-        if (null == getK8sConfig()) {
+    public static ApiClient getK8sClient() throws IOException {
+        if (null == getK8sConfig() || null == getK8sContext()) {
             return Config.defaultClient();
         } else {
-            return Config.fromConfig(getK8sConfig());
+            KubeConfig kCfg = KubeConfig.loadKubeConfig(new FileReader(getK8sConfig()));
+            kCfg.setContext(getK8sContext());
+            ApiClient c = Config.fromConfig(kCfg);
+            return c;
         }
     }
 
-    static String getK8sConfig() {
+    public static String getK8sConfig() {
         return getConfig().k8sConfig;
+    }
+
+    public  static String getK8sContext() {
+        return getConfig().k8sContext;
     }
 
     public static File getYamlDir() {

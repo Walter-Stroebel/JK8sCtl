@@ -67,7 +67,6 @@ public class EditText extends javax.swing.JFrame {
         setTitle("Text");
         setAlwaysOnTop(true);
 
-        jta.setEditable(false);
         jta.setColumns(40);
         jta.setRows(10);
         jScrollPane1.setViewportView(jta);

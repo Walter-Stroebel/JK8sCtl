@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import nl.infcomtec.jk8sctl.Global;
@@ -168,7 +167,7 @@ public class Menu extends javax.swing.JFrame {
     private void initComponents() {
 
         jToolBar1 = new javax.swing.JToolBar();
-        butConnect = new javax.swing.JButton();
+        butSelCluster = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
         butCreate = new javax.swing.JButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
@@ -196,16 +195,16 @@ public class Menu extends javax.swing.JFrame {
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
 
-        butConnect.setText("Connect");
-        butConnect.setFocusable(false);
-        butConnect.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        butConnect.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        butConnect.addActionListener(new java.awt.event.ActionListener() {
+        butSelCluster.setText("Select cluster");
+        butSelCluster.setFocusable(false);
+        butSelCluster.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butSelCluster.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butSelCluster.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                butConnectActionPerformed(evt);
+                butSelClusterActionPerformed(evt);
             }
         });
-        jToolBar1.add(butConnect);
+        jToolBar1.add(butSelCluster);
         jToolBar1.add(jSeparator1);
 
         butCreate.setText("Create");
@@ -325,20 +324,6 @@ public class Menu extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void butConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butConnectActionPerformed
-        JFileChooser jfc = new JFileChooser(new File(Global.homeDir, ".kube"));
-        jfc.setApproveButtonText("Select");
-        if (jfc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            K8sCtlCfg config = Global.getConfig();
-            config.k8sConfig = jfc.getSelectedFile().getAbsolutePath();
-            try {
-                config.saveConfig();
-            } catch (Exception ex) {
-                Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }//GEN-LAST:event_butConnectActionPerformed
-
     private void butCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butCreateActionPerformed
 //        java.awt.EventQueue.invokeLater(new Runnable() {
 //            @Override
@@ -429,6 +414,10 @@ public class Menu extends javax.swing.JFrame {
         Global.loadConfig();
     }//GEN-LAST:event_butLoadConfigActionPerformed
 
+    private void butSelClusterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butSelClusterActionPerformed
+        SelectCluster.main(null);
+    }//GEN-LAST:event_butSelClusterActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -472,7 +461,6 @@ public class Menu extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Debug;
-    private javax.swing.JButton butConnect;
     private javax.swing.JButton butCreate;
     private javax.swing.JButton butDelete;
     private javax.swing.JButton butDiagram;
@@ -480,8 +468,9 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JButton butLoadConfig;
     private javax.swing.JButton butResetConfig;
     private javax.swing.JButton butSaveConfig;
+    private javax.swing.JButton butSelCluster;
     private javax.swing.JButton butYamlEditor;
-    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;

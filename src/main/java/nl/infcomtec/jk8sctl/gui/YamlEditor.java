@@ -10,6 +10,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 import nl.infcomtec.jk8sctl.Global;
+import nl.infcomtec.jk8sctl.RunKubeCtl;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -39,15 +40,24 @@ public class YamlEditor extends javax.swing.JFrame {
         tabsYaml = new javax.swing.JTabbedPane();
         jToolBar1 = new javax.swing.JToolBar();
         butOpen = new javax.swing.JButton();
+        jSeparator1 = new javax.swing.JToolBar.Separator();
         butSave = new javax.swing.JButton();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
         butClose = new javax.swing.JButton();
+        jSeparator3 = new javax.swing.JToolBar.Separator();
         butCopy = new javax.swing.JButton();
+        jSeparator4 = new javax.swing.JToolBar.Separator();
         butPaste = new javax.swing.JButton();
+        jSeparator5 = new javax.swing.JToolBar.Separator();
         butPack = new javax.swing.JButton();
+        jSeparator6 = new javax.swing.JToolBar.Separator();
+        butApply = new javax.swing.JButton();
+        jSeparator7 = new javax.swing.JToolBar.Separator();
         butDelete = new javax.swing.JButton();
+        jSeparator8 = new javax.swing.JToolBar.Separator();
         butRestore = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("JK8sCtl YAML Editor");
         setAlwaysOnTop(true);
 
@@ -74,6 +84,7 @@ public class YamlEditor extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butOpen);
+        jToolBar1.add(jSeparator1);
 
         butSave.setText("Save");
         butSave.setToolTipText("Save the current tab/file");
@@ -87,6 +98,7 @@ public class YamlEditor extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butSave);
+        jToolBar1.add(jSeparator2);
 
         butClose.setText("Close");
         butClose.setToolTipText("Close the current tab (discard)");
@@ -100,6 +112,7 @@ public class YamlEditor extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butClose);
+        jToolBar1.add(jSeparator3);
 
         butCopy.setText("Copy");
         butCopy.setToolTipText("Copy the current tab");
@@ -113,6 +126,7 @@ public class YamlEditor extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butCopy);
+        jToolBar1.add(jSeparator4);
 
         butPaste.setText("Paste");
         butPaste.setToolTipText("Paste into the current tab");
@@ -126,6 +140,7 @@ public class YamlEditor extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butPaste);
+        jToolBar1.add(jSeparator5);
 
         butPack.setText("Pack");
         butPack.setToolTipText("Discard comments and pack");
@@ -139,6 +154,19 @@ public class YamlEditor extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butPack);
+        jToolBar1.add(jSeparator6);
+
+        butApply.setText("Apply");
+        butApply.setFocusable(false);
+        butApply.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butApply.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butApply.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butApplyActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(butApply);
+        jToolBar1.add(jSeparator7);
 
         butDelete.setText("Delete");
         butDelete.setToolTipText("Delete the file");
@@ -152,6 +180,7 @@ public class YamlEditor extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butDelete);
+        jToolBar1.add(jSeparator8);
 
         butRestore.setText("Restore");
         butRestore.setFocusable(false);
@@ -338,6 +367,23 @@ public class YamlEditor extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_butRestoreActionPerformed
 
+    private void butApplyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butApplyActionPerformed
+        YamlFile sel = currentYaml();
+        if (null == sel) {
+            return;
+        }
+        try {
+            Yaml yaml = new Yaml();
+            Iterable<Object> loadAll = yaml.loadAll(sel.jta.getText());
+            try (StringWriter sw = new StringWriter()) {
+                yaml.dumpAll(loadAll.iterator(), sw);
+                RunKubeCtl.apply(sw.toString());
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.toString());
+        }
+    }//GEN-LAST:event_butApplyActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -378,6 +424,7 @@ public class YamlEditor extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton butApply;
     private javax.swing.JButton butClose;
     private javax.swing.JButton butCopy;
     private javax.swing.JButton butDelete;
@@ -386,6 +433,14 @@ public class YamlEditor extends javax.swing.JFrame {
     private javax.swing.JButton butPaste;
     private javax.swing.JButton butRestore;
     private javax.swing.JButton butSave;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator2;
+    private javax.swing.JToolBar.Separator jSeparator3;
+    private javax.swing.JToolBar.Separator jSeparator4;
+    private javax.swing.JToolBar.Separator jSeparator5;
+    private javax.swing.JToolBar.Separator jSeparator6;
+    private javax.swing.JToolBar.Separator jSeparator7;
+    private javax.swing.JToolBar.Separator jSeparator8;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JTabbedPane tabsYaml;
     // End of variables declaration//GEN-END:variables

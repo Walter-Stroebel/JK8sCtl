@@ -74,6 +74,7 @@ public class K8sCtlCfg {
      * Config file for connections to Kubernetes. Normally ~/.kube/config.
      */
     public String k8sConfig;
+    public String k8sContext;
     /**
      * kubectl program to use
      */
