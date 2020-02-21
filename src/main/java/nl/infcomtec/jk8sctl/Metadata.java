@@ -13,7 +13,7 @@ import org.joda.time.DateTime;
  * @author walter
  */
 public interface Metadata {
-
+K8sStatus getStatus();
     /**
      *
      * @return the kind of object

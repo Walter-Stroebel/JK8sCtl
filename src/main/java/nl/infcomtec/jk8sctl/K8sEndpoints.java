@@ -28,6 +28,11 @@ public class K8sEndpoints extends AbstractAppReference {
     }
 
     @Override
+    public K8sStatus getStatus() {
+        return new K8sStatus();
+    }
+
+    @Override
     public StringBuilder getDotNode() {
         StringBuilder ret = pre();
         post(ret);
@@ -58,11 +63,11 @@ public class K8sEndpoints extends AbstractAppReference {
 
     @Override
     public V1PodSpec getPodSpec() {
-        if (null!=getApp()){
+        if (null != getApp()) {
             TreeSet<Integer> get = Maps.apps.get(getApp());
-            for (int sp:get){
+            for (int sp : get) {
                 Metadata item = Maps.items.get(sp);
-                if (null!=item){
+                if (null != item) {
                     if (item instanceof K8sDeployment) {
                         return ((K8sDeployment) item).getPodSpec();
                     }

@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.Executors;
@@ -20,9 +21,13 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.table.AbstractTableModel;
 import nl.infcomtec.jk8sctl.Global;
+import nl.infcomtec.jk8sctl.K8sCondition;
 import nl.infcomtec.jk8sctl.K8sCtlCfg;
 import nl.infcomtec.jk8sctl.K8sRelation;
+import nl.infcomtec.jk8sctl.K8sStatus;
 import nl.infcomtec.jk8sctl.Maps;
 import nl.infcomtec.jk8sctl.Metadata;
 
@@ -37,13 +42,77 @@ public class Menu extends javax.swing.JFrame {
      */
     public Menu() {
         initComponents();
+        pack();
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 try {
                     Maps.collect();
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            StatusTableModel tm = new StatusTableModel();
+                            for (Metadata item : Maps.items.values()) {
+                                K8sStatus status = item.getStatus();
+                                if (!status.okay || chShowAllConditions.isSelected()) {
+                                    for (K8sCondition c : status.details.values()) {
+                                        String[] line = new String[5];
+                                        line[0] = item.getName();
+                                        line[1] = item.getKind();
+                                        line[2] = c.type;
+                                        line[3] = c.status.toString();
+                                        line[4] = c.lastUpdateAge;
+                                        tm.content.add(line);
+                                    }
+                                }
+                            }
+                            statusTable.setModel(tm);
+                        }
+                    });
                 } catch (Exception ex) {
                     Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            class StatusTableModel extends AbstractTableModel {
+
+                @Override
+                public String getColumnName(int column) {
+                    switch (column) {
+                        case 0:
+                            return "Component";
+                        case 1:
+                            return "Kind";
+                        case 2:
+                            return "Condition";
+                        case 3:
+                            return "Status";
+                        case 4:
+                            return "Age";
+                    }
+                    return "?";
+                }
+
+                ArrayList<String[]> content = new ArrayList<>();
+
+                @Override
+                public int getColumnCount() {
+                    return 5;
+                }
+
+                @Override
+                public Class<?> getColumnClass(int columnIndex) {
+                    return String.class;
+                }
+
+                @Override
+                public int getRowCount() {
+                    return content.size();
+                }
+
+                @Override
+                public Object getValueAt(int rowIndex, int columnIndex) {
+                    return content.get(rowIndex)[columnIndex];
                 }
             }
         }, 1, 10, TimeUnit.SECONDS);
@@ -165,6 +234,7 @@ public class Menu extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
 
         jToolBar1 = new javax.swing.JToolBar();
         butSelCluster = new javax.swing.JButton();
@@ -178,6 +248,8 @@ public class Menu extends javax.swing.JFrame {
         butDiagram = new javax.swing.JButton();
         jSeparator5 = new javax.swing.JToolBar.Separator();
         butYamlEditor = new javax.swing.JButton();
+        jSeparator10 = new javax.swing.JToolBar.Separator();
+        chShowAllConditions = new javax.swing.JCheckBox();
         jSeparator6 = new javax.swing.JToolBar.Separator();
         jToolBar2 = new javax.swing.JToolBar();
         butLoadConfig = new javax.swing.JButton();
@@ -187,10 +259,11 @@ public class Menu extends javax.swing.JFrame {
         butResetConfig = new javax.swing.JButton();
         jSeparator8 = new javax.swing.JToolBar.Separator();
         butEditConfig = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        statusTable = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Kubernetes Tools by InfComTec");
-        getContentPane().setLayout(new java.awt.GridLayout(0, 1));
 
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
@@ -265,9 +338,13 @@ public class Menu extends javax.swing.JFrame {
             }
         });
         jToolBar1.add(butYamlEditor);
-        jToolBar1.add(jSeparator6);
+        jToolBar1.add(jSeparator10);
 
-        getContentPane().add(jToolBar1);
+        chShowAllConditions.setText("Show all conditions");
+        chShowAllConditions.setFocusable(false);
+        chShowAllConditions.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        jToolBar1.add(chShowAllConditions);
+        jToolBar1.add(jSeparator6);
 
         jToolBar2.setFloatable(false);
         jToolBar2.setRollover(true);
@@ -319,25 +396,59 @@ public class Menu extends javax.swing.JFrame {
         });
         jToolBar2.add(butEditConfig);
 
-        getContentPane().add(jToolBar2);
+        statusTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Component", "Kind", "Condition", "Status", "Age"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane1.setViewportView(statusTable);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addComponent(jToolBar2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 727, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(13, 13, 13)
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jToolBar2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 421, Short.MAX_VALUE)
+                .addContainerGap())
+        );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void butCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butCreateActionPerformed
-//        java.awt.EventQueue.invokeLater(new Runnable() {
-//            @Override
-//            public void run() {
-//                final DeployService dialog = new DeployService(new javax.swing.JFrame(), false);
-//                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-//                    @Override
-//                    public void windowClosing(java.awt.event.WindowEvent e) {
-//                        dialog.dispose();
-//                    }
-//                });
-//                dialog.setVisible(true);
-//            }
-//        });
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -470,7 +581,10 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JButton butSaveConfig;
     private javax.swing.JButton butSelCluster;
     private javax.swing.JButton butYamlEditor;
-    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JCheckBox chShowAllConditions;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JToolBar.Separator jSeparator1;
+    private javax.swing.JToolBar.Separator jSeparator10;
     private javax.swing.JToolBar.Separator jSeparator2;
     private javax.swing.JToolBar.Separator jSeparator3;
     private javax.swing.JToolBar.Separator jSeparator4;
@@ -481,5 +595,6 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JToolBar.Separator jSeparator9;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JTable statusTable;
     // End of variables declaration//GEN-END:variables
 }

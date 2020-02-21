@@ -4,9 +4,12 @@
 package nl.infcomtec.jk8sctl;
 
 import io.kubernetes.client.models.V1Deployment;
+import io.kubernetes.client.models.V1DeploymentCondition;
 import io.kubernetes.client.models.V1DeploymentSpec;
+import io.kubernetes.client.models.V1DeploymentStatus;
 import io.kubernetes.client.models.V1PodSpec;
 import io.kubernetes.client.models.V1PodTemplateSpec;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -79,6 +82,41 @@ public class K8sDeployment extends AbstractAppReference {
     }
 
     @Override
+    public K8sStatus getStatus() {
+        V1DeploymentStatus status = k8s.getStatus();
+        if (null == status) {
+            return new K8sStatus(false);
+        }
+        int actRep = null==status.getReplicas()?0:status.getReplicas();
+        K8sStatus ret = new K8sStatus();
+        List<V1DeploymentCondition> conditions = status.getConditions();
+        for (V1DeploymentCondition cond : conditions) {
+            String t = cond.getType();
+            String s = cond.getStatus();
+            if (s.equals("Unknown")) {
+                ret.okay = false;
+            } else if (t.equals("Progressing") && !s.equals("True")) {
+                ret.okay = false;
+            } else if (t.endsWith("Available") && !s.equals("True")) {
+                ret.okay = false;
+            }
+            ret.details.put(t, new K8sCondition(cond));
+        }
+        if (null == k8s.getSpec()) {
+            ret.okay = false;
+        } else {
+            int desRep = k8s.getSpec().getReplicas();
+            if (actRep != desRep) {
+                ret.okay = false;
+                ret.details.put("Replicas", new K8sCondition(String.format("Replicas %d of %d",actRep,desRep), K8sCondition.Status.False));
+            } else {
+                ret.details.put("Replicas", new K8sCondition(String.format("Replicas %d of %d",actRep,desRep), K8sCondition.Status.True));
+            }
+        }
+        return ret;
+    }
+
+    @Override
     public DefaultMutableTreeNode getTree() {
         DefaultMutableTreeNode ret = super.getTree();
         dumpBean(k8s.getSpec(), "spec", ret);
@@ -92,6 +130,5 @@ public class K8sDeployment extends AbstractAppReference {
     public V1Deployment getK8s() {
         return k8s;
     }
-    
 
 }

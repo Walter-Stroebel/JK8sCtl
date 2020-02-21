@@ -25,6 +25,11 @@ public class K8sNamespace extends AbstractMetadata {
     }
 
     @Override
+    public K8sStatus getStatus() {
+        return new K8sStatus();
+    }
+
+    @Override
     public TreeMap<Integer, K8sRelation> getRelations() {
         TreeMap<Integer, K8sRelation> ret = new TreeMap<>();
         if (getMapId() != 0) {

@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 /**
  * Holds all global data and configuration.
@@ -65,11 +66,23 @@ public class Global {
         if (null == getK8sConfig() || null == getK8sContext()) {
             return Config.defaultClient();
         } else {
-            KubeConfig kCfg = KubeConfig.loadKubeConfig(new FileReader(getK8sConfig()));
-            kCfg.setContext(getK8sContext());
-            ApiClient c = Config.fromConfig(kCfg);
-            return c;
+            try {
+                KubeConfig kCfg = KubeConfig.loadKubeConfig(new FileReader(getK8sConfig()));
+                kCfg.setContext(getK8sContext());
+                ApiClient c = Config.fromConfig(kCfg);
+                return c;
+            } catch (IOException ex) {
+                int ans=JOptionPane.showConfirmDialog(null, String.format("Cannot connect to %s.%s\nConnect to default cluster instead?", getK8sConfig(), getK8sContext()));
+                if (ans==JOptionPane.YES_OPTION) {
+                    getConfig().k8sConfig=null;
+                    getConfig().k8sContext=null;
+                    getConfig().saveConfig();
+                    return Config.defaultClient();
+                }
+                System.exit(0);
+            }
         }
+        return null;
     }
 
     public static String getK8sConfig() {

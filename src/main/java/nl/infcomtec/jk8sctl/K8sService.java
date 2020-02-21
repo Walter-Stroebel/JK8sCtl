@@ -32,6 +32,11 @@ public class K8sService extends AbstractAppReference {
     }
 
     @Override
+    public K8sStatus getStatus() {
+        return new K8sStatus();
+    }
+
+    @Override
     public V1PodSpec getPodSpec() {
         if (null!=getApp()){
             TreeSet<Integer> get = Maps.apps.get(getApp());

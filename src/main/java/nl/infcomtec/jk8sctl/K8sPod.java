@@ -4,7 +4,10 @@
 package nl.infcomtec.jk8sctl;
 
 import io.kubernetes.client.models.V1Pod;
+import io.kubernetes.client.models.V1PodCondition;
 import io.kubernetes.client.models.V1PodSpec;
+import io.kubernetes.client.models.V1PodStatus;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -20,6 +23,23 @@ public class K8sPod extends AbstractAppReference {
     public K8sPod(int mapId, V1Pod k8s) {
         super(mapId, "pod", k8s.getMetadata());
         this.k8s = k8s;
+    }
+
+    @Override
+    public K8sStatus getStatus() {
+        V1PodStatus status = k8s.getStatus();
+        if (null==status)return new K8sStatus(false);
+        K8sStatus ret = new K8sStatus();
+        List<V1PodCondition> conditions = status.getConditions();
+        for (V1PodCondition cond:conditions){
+            String t = cond.getType();
+            String s = cond.getStatus();
+            if (!s.equals("True")){
+                ret.okay=false;
+            }
+            ret.details.put(t, new K8sCondition(cond));
+        }
+        return ret;
     }
 
     /**
