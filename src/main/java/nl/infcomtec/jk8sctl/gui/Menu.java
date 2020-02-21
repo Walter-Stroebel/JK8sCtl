@@ -3,30 +3,18 @@
  */
 package nl.infcomtec.jk8sctl.gui;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import nl.infcomtec.jk8sctl.Global;
 import nl.infcomtec.jk8sctl.K8sCondition;
 import nl.infcomtec.jk8sctl.K8sCtlCfg;
-import nl.infcomtec.jk8sctl.K8sRelation;
 import nl.infcomtec.jk8sctl.K8sStatus;
 import nl.infcomtec.jk8sctl.Maps;
 import nl.infcomtec.jk8sctl.Metadata;
@@ -35,7 +23,7 @@ import nl.infcomtec.jk8sctl.Metadata;
  *
  * @author walter
  */
-public class Menu extends javax.swing.JFrame {
+public class Menu extends javax.swing.JFrame implements CollectorUpdate {
 
     /**
      * Creates new form Menu
@@ -48,182 +36,55 @@ public class Menu extends javax.swing.JFrame {
             public void run() {
                 try {
                     Maps.collect();
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            StatusTableModel tm = new StatusTableModel();
-                            for (Metadata item : Maps.items.values()) {
-                                K8sStatus status = item.getStatus();
-                                if (!status.okay || chShowAllConditions.isSelected()) {
-                                    for (K8sCondition c : status.details.values()) {
-                                        String[] line = new String[5];
-                                        line[0] = item.getName();
-                                        line[1] = item.getKind();
-                                        line[2] = c.type;
-                                        line[3] = c.status.toString();
-                                        line[4] = c.lastUpdateAge;
-                                        tm.content.add(line);
-                                    }
-                                }
-                            }
-                            statusTable.setModel(tm);
-                        }
-                    });
                 } catch (Exception ex) {
                     Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
 
-            class StatusTableModel extends AbstractTableModel {
-
-                @Override
-                public String getColumnName(int column) {
-                    switch (column) {
-                        case 0:
-                            return "Component";
-                        case 1:
-                            return "Kind";
-                        case 2:
-                            return "Condition";
-                        case 3:
-                            return "Status";
-                        case 4:
-                            return "Age";
-                    }
-                    return "?";
-                }
-
-                ArrayList<String[]> content = new ArrayList<>();
-
-                @Override
-                public int getColumnCount() {
-                    return 5;
-                }
-
-                @Override
-                public Class<?> getColumnClass(int columnIndex) {
-                    return String.class;
-                }
-
-                @Override
-                public int getRowCount() {
-                    return content.size();
-                }
-
-                @Override
-                public Object getValueAt(int rowIndex, int columnIndex) {
-                    return content.get(rowIndex)[columnIndex];
-                }
-            }
         }, 1, 10, TimeUnit.SECONDS);
+        Maps.doUpdate(this);
     }
 
-    private static class ViewPanel extends JPanel {
+    private static class StatusTableModel extends AbstractTableModel {
 
         @Override
-        public void paint(Graphics _g) {
-            int w = getWidth();
-            int h = getHeight();
-            if (Maps.items.isEmpty()) {
-                BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g = bi.createGraphics();
-                g.setColor(Color.ORANGE);
-                g.fillRect(0, 0, w, h);
-                g.setColor(Color.BLACK);
-                g.drawLine(0, 0, w - 1, h - 1);
-                g.drawLine(0, h - 1, w - 1, 0);
-                g.dispose();
-                _g.drawImage(bi, 0, 0, null);
-            } else {
-                try {
-                    final StringBuilder dot = new StringBuilder();
-                    dot.append("strict digraph {\nrankdir=\"LR\";\nnode [shape=plaintext]\n");
-                    TreeSet<Integer> uniq = new TreeSet<>();
-                    for (Metadata item : Maps.items.values()) {
-                        dot.append(item.getDotNode());
-                        draw(item.getMapId(), uniq, dot);
-                    }
-                    dot.append("}\n");
-                    draw(dot, _g, w, h);
-                } catch (Exception any) {
-                    Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, any);
-                }
+        public String getColumnName(int column) {
+            switch (column) {
+                case 0:
+                    return "Component";
+                case 1:
+                    return "Kind";
+                case 2:
+                    return "Condition";
+                case 3:
+                    return "Status";
+                case 4:
+                    return "Age";
             }
+            return "?";
         }
 
-        private void draw(Integer mapId, TreeSet<Integer> uniq, final StringBuilder dot) {
-            if (!uniq.add(mapId)) {
-                return;
-            }
-            Metadata item = Maps.items.get(mapId);
-            for (Map.Entry<Integer, K8sRelation> m : item.getRelations().entrySet()) {
-                Metadata link = Maps.items.get(m.getValue().other);
-                if (m.getValue().isTo) {
-                    dot.append(item.getDotNodeName()).append(" -> ").append(link.getDotNodeName()).append(m.getValue().toString());
-                } else {
-                    dot.append(link.getDotNodeName()).append(" -> ").append(item.getDotNodeName()).append(m.getValue().toString());
-                }
-                draw(m.getKey(), uniq, dot);
-            }
+        ArrayList<String[]> content = new ArrayList<>();
+
+        @Override
+        public int getColumnCount() {
+            return 5;
         }
 
-        private void draw(final StringBuilder dot, Graphics _g, int w, int h) throws InterruptedException, IOException {
-            //System.out.println(dot);
-            ProcessBuilder pb = new ProcessBuilder("dot", "-Tpng");
-            pb.redirectError(new File("/dev/null"));
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            final Process p = pb.start();
-            Thread t1 = new Thread() {
-                @Override
-                public void run() {
-                    while (true) {
-                        try {
-                            int c = p.getInputStream().read();
-                            if (c >= 0) {
-                                baos.write(c);
-                            } else {
-                                break;
-                            }
-                        } catch (IOException ex) {
-                            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
-                            return;
-                        }
-                    }
-                    try {
-                        p.getInputStream().close();
-                        baos.close();
-                    } catch (IOException ex) {
-                        Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            };
-            Thread t2 = new Thread() {
-                @Override
-                public void run() {
-                    for (int i = 0; i < dot.length(); i++) {
-                        try {
-                            p.getOutputStream().write(dot.charAt(i));
-                        } catch (IOException ex) {
-                            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
-                            return;
-                        }
-                    }
-                    try {
-                        p.getOutputStream().close();
-                    } catch (IOException ex) {
-                        Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            };
-            t1.start();
-            t2.start();
-            t2.join();
-            t1.join();
-            p.waitFor();
-            BufferedImage png = ImageIO.read(new ByteArrayInputStream(baos.toByteArray()));
-            _g.drawImage(png.getScaledInstance(w, h, BufferedImage.SCALE_SMOOTH), 0, 0, null);
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            return String.class;
         }
 
+        @Override
+        public int getRowCount() {
+            return content.size();
+        }
+
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            return content.get(rowIndex)[columnIndex];
+        }
     }
 
     /**
@@ -234,7 +95,6 @@ public class Menu extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-        java.awt.GridBagConstraints gridBagConstraints;
 
         jToolBar1 = new javax.swing.JToolBar();
         butSelCluster = new javax.swing.JButton();
@@ -251,6 +111,7 @@ public class Menu extends javax.swing.JFrame {
         jSeparator10 = new javax.swing.JToolBar.Separator();
         chShowAllConditions = new javax.swing.JCheckBox();
         jSeparator6 = new javax.swing.JToolBar.Separator();
+        butResources = new javax.swing.JButton();
         jToolBar2 = new javax.swing.JToolBar();
         butLoadConfig = new javax.swing.JButton();
         jSeparator9 = new javax.swing.JToolBar.Separator();
@@ -346,6 +207,17 @@ public class Menu extends javax.swing.JFrame {
         jToolBar1.add(chShowAllConditions);
         jToolBar1.add(jSeparator6);
 
+        butResources.setText("Resources");
+        butResources.setFocusable(false);
+        butResources.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        butResources.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        butResources.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                butResourcesActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(butResources);
+
         jToolBar2.setFloatable(false);
         jToolBar2.setRollover(true);
 
@@ -430,7 +302,7 @@ public class Menu extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
                     .addComponent(jToolBar2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 727, Short.MAX_VALUE))
+                    .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -529,6 +401,10 @@ public class Menu extends javax.swing.JFrame {
         SelectCluster.main(null);
     }//GEN-LAST:event_butSelClusterActionPerformed
 
+    private void butResourcesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butResourcesActionPerformed
+        Resources.main(null);
+    }//GEN-LAST:event_butResourcesActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -578,6 +454,7 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JButton butEditConfig;
     private javax.swing.JButton butLoadConfig;
     private javax.swing.JButton butResetConfig;
+    private javax.swing.JButton butResources;
     private javax.swing.JButton butSaveConfig;
     private javax.swing.JButton butSelCluster;
     private javax.swing.JButton butYamlEditor;
@@ -597,4 +474,30 @@ public class Menu extends javax.swing.JFrame {
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JTable statusTable;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public boolean update() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                StatusTableModel tm = new StatusTableModel();
+                for (Metadata item : Maps.items.values()) {
+                    K8sStatus status = item.getStatus();
+                    if (!status.okay || chShowAllConditions.isSelected()) {
+                        for (K8sCondition c : status.details.values()) {
+                            String[] line = new String[5];
+                            line[0] = item.getName();
+                            line[1] = item.getKind();
+                            line[2] = c.type;
+                            line[3] = c.status.toString();
+                            line[4] = c.lastUpdateAge;
+                            tm.content.add(line);
+                        }
+                    }
+                }
+                statusTable.setModel(tm);
+            }
+        });
+        return true;
+    }
 }

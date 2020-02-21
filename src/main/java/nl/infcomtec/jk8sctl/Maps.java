@@ -7,6 +7,8 @@ import io.kubernetes.client.ApiClient;
 import io.kubernetes.client.Configuration;
 import io.kubernetes.client.apis.AppsV1Api;
 import io.kubernetes.client.apis.CoreV1Api;
+import io.kubernetes.client.custom.Quantity;
+import io.kubernetes.client.models.V1Container;
 import io.kubernetes.client.models.V1Deployment;
 import io.kubernetes.client.models.V1DeploymentList;
 import io.kubernetes.client.models.V1Endpoints;
@@ -22,9 +24,13 @@ import io.kubernetes.client.models.V1ReplicationController;
 import io.kubernetes.client.models.V1ReplicationControllerList;
 import io.kubernetes.client.models.V1Service;
 import io.kubernetes.client.models.V1ServiceList;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentSkipListMap;
+import nl.infcomtec.jk8sctl.gui.CollectorUpdate;
 import org.joda.time.DateTime;
 
 /**
@@ -36,6 +42,8 @@ public class Maps {
     public static final ConcurrentSkipListMap<Integer, Metadata> items = new ConcurrentSkipListMap<>();
     public static final ConcurrentSkipListMap<String, Integer> spaces = new ConcurrentSkipListMap<>();
     public static final ConcurrentSkipListMap<String, TreeSet<Integer>> apps = new ConcurrentSkipListMap<>();
+    public static final ConcurrentSkipListMap<String, K8sResources> nodes = new ConcurrentSkipListMap<>();
+    private static final ConcurrentLinkedDeque<CollectorUpdate> needUpdate = new ConcurrentLinkedDeque<>();
 
     private static void add(Metadata md) {
         items.put(md.getMapId(), md);
@@ -52,6 +60,10 @@ public class Maps {
                 set.add(md.getMapId());
             }
         }
+    }
+
+    public static void doUpdate(CollectorUpdate f) {
+        needUpdate.add(f);
     }
 
     public static String[] getSpaces() {
@@ -75,6 +87,7 @@ public class Maps {
             items.clear();
             spaces.clear();
             apps.clear();
+            nodes.clear();
             try {
                 V1Namespace root = new V1Namespace();
                 V1ObjectMeta meta = new V1ObjectMeta();
@@ -101,20 +114,73 @@ public class Maps {
                     System.out.println("listNamespace: " + any);
                 }
                 try {
-                    V1PodList list = api.listPodForAllNamespaces(null, null, null, null, null, null, null, null, null);
-                    for (V1Pod item : list.getItems()) {
-                        add(new K8sPod(items.size(), item));
-                    }
-                } catch (Exception any) {
-                    System.out.println("listPodForAllNamespaces: " + any);
-                }
-                try {
                     V1NodeList list = api.listNode(null, null, null, null, null, null, null, null, null);
                     for (V1Node item : list.getItems()) {
-                        add(new K8sNode(items.size(), item));
+                        K8sNode n = new K8sNode(items.size(), item);
+                        add(n);
+                        nodes.put(n.getName(), n.getResources());
                     }
                 } catch (Exception any) {
                     System.out.println("listNode: " + any);
+                }
+                try {
+                    V1PodList list = api.listPodForAllNamespaces(null, null, null, null, null, null, null, null, null);
+                    for (V1Pod item : list.getItems()) {
+                        K8sPod p = new K8sPod(items.size(), item);
+                        add(p);
+                        K8sResources res = nodes.get(p.getNodeName());
+                        if (null == res) {
+                            nodes.put(p.getNodeName(), res = new K8sResources());
+                            Global.warn("Pod %s claims to run on unknown node %s", p.getNSName(), p.getNodeName());
+                        }
+                        res.podUsed++;
+                        double c = 0;
+                        double d = 0;
+                        double m = 0;
+                        for (V1Container e1 : p.getK8s().getSpec().getContainers()) {
+                            {
+                                Map<String, Quantity> mp = e1.getResources().getRequests();
+                                if (null != mp) {
+                                    for (Map.Entry<String, Quantity> e2 : mp.entrySet()) {
+                                        switch (e2.getKey()) {
+                                            case "cpu":
+                                                c = e2.getValue().getNumber().doubleValue();
+                                                break;
+                                            case "ephemeral-storage":
+                                                d = e2.getValue().getNumber().doubleValue();
+                                                break;
+                                            case "memory":
+                                                m = e2.getValue().getNumber().doubleValue();
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                            {
+                                Map<String, Quantity> mp = e1.getResources().getLimits();
+                                if (null != mp) {
+                                    for (Map.Entry<String, Quantity> e2 : mp.entrySet()) {
+                                        switch (e2.getKey()) {
+                                            case "cpu":
+                                                c = Math.max(c, e2.getValue().getNumber().doubleValue());
+                                                break;
+                                            case "ephemeral-storage":
+                                                d = Math.max(d, e2.getValue().getNumber().doubleValue());
+                                                break;
+                                            case "memory":
+                                                m = Math.max(m, e2.getValue().getNumber().doubleValue());
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        res.cpuUsed += c;
+                        res.memUsed += m;
+                        res.dskUsed += d;
+                    }
+                } catch (Exception any) {
+                    System.out.println("listPodForAllNamespaces: " + any);
                 }
                 try {
                     V1ServiceList list = api.listServiceForAllNamespaces(null, null, null, null, null, null, null, null, null);
@@ -151,6 +217,12 @@ public class Maps {
                 }
             } catch (Exception any) {
                 System.out.println("listDeploymentForAllNamespaces: " + any);
+            }
+        }
+        for (Iterator<CollectorUpdate> it = needUpdate.iterator(); it.hasNext();) {
+            CollectorUpdate u = it.next();
+            if (!u.update()) {
+                it.remove();
             }
         }
     }

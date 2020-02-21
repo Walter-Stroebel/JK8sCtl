@@ -3,12 +3,14 @@
  */
 package nl.infcomtec.jk8sctl;
 
+import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.models.V1ContainerImage;
 import io.kubernetes.client.models.V1Node;
 import io.kubernetes.client.models.V1NodeCondition;
 import io.kubernetes.client.models.V1NodeSpec;
 import io.kubernetes.client.models.V1NodeStatus;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -25,6 +27,34 @@ public class K8sNode extends AbstractMetadata {
         this.k8s = k8s;
     }
 
+    public K8sResources getResources() {
+        K8sResources ret = new K8sResources();
+        try {
+            for (Map.Entry<String, Quantity> e : k8s.getStatus().getAllocatable().entrySet()) {
+                switch (e.getKey()) {
+                    case "cpu":
+                        ret.cpuAvail = e.getValue().getNumber().doubleValue();
+                        break;
+                    case "ephemeral-storage":
+                        ret.dskAvail = e.getValue().getNumber().doubleValue();
+                        break;
+                    case "memory":
+                        ret.memAvail = e.getValue().getNumber().doubleValue();
+                        break;
+                    case "pods":
+                        ret.podAvail = e.getValue().getNumber().doubleValue();
+                        break;
+                }
+            }
+            for (V1ContainerImage e:k8s.getStatus().getImages()){
+                ret.dskUsed+=e.getSizeBytes();
+            }
+        } catch (Exception any) {
+            Global.warn("Failed to collect node resources %s", any.toString());
+        }
+        return ret;
+    }
+
     @Override
     public K8sStatus getStatus() {
         V1NodeStatus status = k8s.getStatus();
@@ -38,9 +68,9 @@ public class K8sNode extends AbstractMetadata {
             String s = cond.getStatus();
             if (s.equals("Unknown")) {
                 ret.okay = false;
-            } else if (t.equals("Ready")&&!s.equals("True")){
+            } else if (t.equals("Ready") && !s.equals("True")) {
                 ret.okay = false;
-            } else if (t.endsWith("Pressure")&&s.equals("True")){
+            } else if (t.endsWith("Pressure") && s.equals("True")) {
                 ret.okay = false;
             }
             ret.details.put(t, new K8sCondition(cond));

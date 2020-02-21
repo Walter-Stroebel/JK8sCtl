@@ -14,8 +14,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.TreeSet;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -31,24 +29,14 @@ import nl.infcomtec.jk8sctl.Metadata;
  *
  * @author walter
  */
-public class Diagram extends javax.swing.JFrame {
+public class Diagram extends javax.swing.JFrame implements CollectorUpdate{
 
     /**
      * Creates new form Menu
      */
     public Diagram() {
         initComponents();
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    viewPanel.invalidate();
-                    viewPanel.repaint();
-                } catch (Exception ex) {
-                    Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }, 10, 10, TimeUnit.SECONDS);
+        Maps.doUpdate(this);
     }
 
     private StringBuilder genDot() {
@@ -93,6 +81,23 @@ public class Diagram extends javax.swing.JFrame {
         }
         dot.append("}\n");
         return dot;
+    }
+
+    @Override
+    public boolean update() {
+        if (!isShowing()) return false;
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    viewPanel.invalidate();
+                    viewPanel.repaint();
+                } catch (Exception ex) {
+                    Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+        return true;
     }
 
     private class ViewPanel extends JPanel {
