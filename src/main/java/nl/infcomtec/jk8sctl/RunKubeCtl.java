@@ -5,7 +5,6 @@ package nl.infcomtec.jk8sctl;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import javax.swing.JOptionPane;
 
 /**
  *
@@ -13,20 +12,24 @@ import javax.swing.JOptionPane;
  */
 public class RunKubeCtl {
 
-    public static void apply(String yaml) throws Exception {
+    public int ret;
+    public final StringBuilder in = new StringBuilder();
+    public final StringBuilder err = new StringBuilder();
+
+    public static RunKubeCtl apply(String yaml) throws Exception {
         ProcessBuilder pb;
         if (null == Global.getK8sConfig()) {
             pb = new ProcessBuilder(Global.kubeCtlPrg(), "apply", "-f", "-");
         } else {
             pb = new ProcessBuilder(Global.kubeCtlPrg(), "--kubeconfig=" + Global.getK8sConfig(), "--context=" + Global.getK8sContext(), "apply", "-f", "-");
         }
-        run(pb, yaml, "kubectl apply");
+        RunKubeCtl rkc = new RunKubeCtl();
+        rkc.run(pb, yaml, "kubectl apply");
+        return rkc;
     }
 
-    private static void run(ProcessBuilder pb, String yaml, String action) throws Exception {
+    private void run(ProcessBuilder pb, String yaml, String action) throws Exception {
         final Process p = pb.start();
-        final StringBuilder in = new StringBuilder();
-        final StringBuilder err = new StringBuilder();
         Thread t1 = new Thread() {
             @Override
             public void run() {
@@ -66,19 +69,10 @@ public class RunKubeCtl {
         p.getOutputStream().close();
         t1.join();
         t2.join();
-        int ret = p.waitFor();
-        StringBuilder msg = new StringBuilder();
-        msg.append(in.toString());
-        if (err.length() > 0) {
-            msg.append("\nErrors:\n");
-            msg.append(err.toString());
-        }
-        msg.append("\nReturn code: ").append(ret);
-        System.out.println(msg);
-        JOptionPane.showMessageDialog(null, msg.toString(), action, JOptionPane.INFORMATION_MESSAGE);
+        ret = p.waitFor();
     }
 
-    public static void delete(Metadata selected) throws Exception {
+    public static RunKubeCtl delete(Metadata selected) throws Exception {
         ProcessBuilder pb;
         if (!selected.getNamespace().isEmpty()) {
             if (null == Global.getK8sConfig()) {
@@ -93,6 +87,8 @@ public class RunKubeCtl {
                 pb = new ProcessBuilder(Global.kubeCtlPrg(), "--kubeconfig=" + Global.getK8sConfig(), "--context=" + Global.getK8sContext(), "delete", selected.getKind(), selected.getName());
             }
         }
-        run(pb, null, "kubectl delete");
+        RunKubeCtl rkc = new RunKubeCtl();
+        rkc.run(pb, null, "kubectl delete");
+        return rkc;       
     }
 }

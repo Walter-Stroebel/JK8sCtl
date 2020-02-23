@@ -3,13 +3,9 @@
  */
 package nl.infcomtec.jk8sctl.gui;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 import nl.infcomtec.jk8sctl.Maps;
 import nl.infcomtec.jk8sctl.Metadata;
-import nl.infcomtec.jk8sctl.RunKubeCtl;
 
 /**
  *
@@ -117,21 +113,15 @@ public class Armageddon extends javax.swing.JFrame {
     }//GEN-LAST:event_butCancelActionPerformed
 
     private void butOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butOkActionPerformed
-        Metadata selected = null;
+        Metadata selected;
         try {
             DefaultMutableTreeNode selectedElement = (DefaultMutableTreeNode) jTree1.getSelectionPath().getLastPathComponent();
             selected = (Metadata) selectedElement.getUserObject();
         } catch (Exception any) {
             // ignore, user did not properly select an item
+            return;
         }
-        int resp = JOptionPane.showConfirmDialog(this, "Really delete " + selected.getKind() + " in namespace " + selected.getNamespace() + " named " + selected.getName() + "?");
-        if (resp == JOptionPane.YES_OPTION) {
-            try {
-                RunKubeCtl.delete(selected);
-            } catch (Exception ex) {
-                Logger.getLogger(Armageddon.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+        KubeCtlAction.delete(selected);
         dispose();
     }//GEN-LAST:event_butOkActionPerformed
 
