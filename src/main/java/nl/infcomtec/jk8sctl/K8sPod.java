@@ -49,25 +49,30 @@ public class K8sPod extends AbstractAppReference {
             }
             ret.details.put(t, kc);
         }
-        try {
-            List<V1Container> containers = k8s.getSpec().getContainers();
-            for (V1Container c : containers) {
-                V1ResourceRequirements resources = c.getResources();
-                Map<String, Quantity> limits = resources.getLimits();
-                if (null == limits) {
-                    ret.okay = false;
-                    K8sCondition kc = new K8sCondition("Limits", K8sCondition.Status.Unknown, K8sCondition.Status.True);
-                    ret.details.put("Limits", kc);
+        if (!getNamespace().equals("kube-system")) {
+            // We will assume the Kubernetes team knows what they are doing
+            // in their own namespace and ignore the missing resource
+            // specification. Everybody else is fair game.
+            try {
+                List<V1Container> containers = k8s.getSpec().getContainers();
+                for (V1Container c : containers) {
+                    V1ResourceRequirements resources = c.getResources();
+                    Map<String, Quantity> limits = resources.getLimits();
+                    if (null == limits) {
+                        ret.okay = false;
+                        K8sCondition kc = new K8sCondition("Limits", K8sCondition.Status.Unknown, K8sCondition.Status.True);
+                        ret.details.put("Limits", kc);
+                    }
+                    Map<String, Quantity> requests = resources.getRequests();
+                    if (null == requests) {
+                        ret.okay = false;
+                        K8sCondition kc = new K8sCondition("Requests", K8sCondition.Status.Unknown, K8sCondition.Status.True);
+                        ret.details.put("Requests", kc);
+                    }
                 }
-                Map<String, Quantity> requests = resources.getRequests();
-                if (null == requests) {
-                    ret.okay = false;
-                    K8sCondition kc = new K8sCondition("Requests", K8sCondition.Status.Unknown, K8sCondition.Status.True);
-                    ret.details.put("Requests", kc);
-                }
+            } catch (Exception any) {
+                // we tried
             }
-        } catch (Exception any) {
-            // we tried
         }
         return ret;
     }
@@ -92,8 +97,8 @@ public class K8sPod extends AbstractAppReference {
                     ret.memAvail = limits.get("memory").getNumber().doubleValue();
                 } catch (Exception nullPointer) {
                     // sane maxima
-                    ret.cpuAvail=1;
-                    ret.memAvail=GiBf;
+                    ret.cpuAvail = 1;
+                    ret.memAvail = GiBf;
                 }
                 Map<String, Quantity> requests = resources.getRequests();
                 try {
@@ -101,8 +106,8 @@ public class K8sPod extends AbstractAppReference {
                     ret.memUsed = requests.get("memory").getNumber().doubleValue();
                 } catch (Exception nullPointer) {
                     // sane minima
-                    ret.cpuAvail=0.1;
-                    ret.memAvail=GiBf*0.1;
+                    ret.cpuAvail = 0.1;
+                    ret.memAvail = GiBf * 0.1;
                 }
             }
         } catch (Exception any) {

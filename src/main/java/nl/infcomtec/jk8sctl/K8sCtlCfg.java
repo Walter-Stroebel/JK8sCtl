@@ -119,12 +119,14 @@ public class K8sCtlCfg {
         }
         try {
             Rectangle bounds = new Rectangle(
-                    ((Double) modConfig.get(moduleKeyName + ".x")).intValue(),
-                    ((Double) modConfig.get(moduleKeyName + ".y")).intValue(),
-                    ((Double) modConfig.get(moduleKeyName + ".w")).intValue(),
-                    ((Double) modConfig.get(moduleKeyName + ".h")).intValue());
+                    ((Number) modConfig.get(moduleKeyName + ".x")).intValue(),
+                    ((Number) modConfig.get(moduleKeyName + ".y")).intValue(),
+                    ((Number) modConfig.get(moduleKeyName + ".w")).intValue(),
+                    ((Number) modConfig.get(moduleKeyName + ".h")).intValue());
             comp.setBounds(bounds);
+            // System.out.println("Restored "+moduleKeyName+" to "+bounds);
         } catch (Exception any) {
+            System.out.println(any.toString());
             return false;
         }
         return true;

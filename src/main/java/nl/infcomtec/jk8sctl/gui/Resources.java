@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 import nl.infcomtec.jk8sctl.CollectorUpdate;
+import nl.infcomtec.jk8sctl.Global;
 import nl.infcomtec.jk8sctl.K8sResources;
 import nl.infcomtec.jk8sctl.Maps;
 
@@ -24,14 +25,19 @@ public class Resources extends javax.swing.JFrame implements CollectorUpdate {
     public Resources() {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Kubernetes Resources");
-        setAlwaysOnTop(true);
         initComponents();
+        setAlwaysOnTop(Global.getConfig().getModBoolean("resources.alwaysontop", true, true));
+        if (!Global.getConfig().restoreWindowPositionAndSize("resources.window", this)) {
+            Global.getConfig().saveWindowPositionAndSize("resources.window", this);
+        }
         Maps.doUpdate(this);
     }
 
     @Override
-    public boolean update(){
-        if (!isShowing()) return false;
+    public boolean update() {
+        if (!isShowing()) {
+            return false;
+        }
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -41,11 +47,23 @@ public class Resources extends javax.swing.JFrame implements CollectorUpdate {
         });
         return true;
     }
+
     /**
      * This method is called from within the constructor to initialize the form.
      */
     @SuppressWarnings("unchecked")
     private void initComponents() {
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                Global.getConfig().saveWindowPositionAndSize("resources.window", Resources.this);
+            }
+
+            @Override
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                Global.getConfig().saveWindowPositionAndSize("resources.window", Resources.this);
+            }
+        });
         getContentPane().setLayout(new GridLayout(Maps.nodes.size() + 1, 5, 5, 5));
         getContentPane().add(new JLabel("Node"));
         getContentPane().add(new JLabel("CPU"));
