@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
+import nl.infcomtec.jk8sctl.CollectorUpdate;
 import nl.infcomtec.jk8sctl.Global;
 import nl.infcomtec.jk8sctl.K8sCondition;
 import nl.infcomtec.jk8sctl.K8sCtlCfg;
@@ -30,7 +31,10 @@ public class Menu extends javax.swing.JFrame implements CollectorUpdate {
      */
     public Menu() {
         initComponents();
-        pack();
+        setAlwaysOnTop(Global.getConfig().getModBoolean("menu.alwaysontop", true, true));
+        if (!Global.getConfig().restoreWindowPositionAndSize("menu.window", this)) {
+            Global.getConfig().saveWindowPositionAndSize("menu.window", this);
+        }
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -125,6 +129,15 @@ public class Menu extends javax.swing.JFrame implements CollectorUpdate {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Kubernetes Tools by InfComTec");
+        setAlwaysOnTop(true);
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                formComponentResized(evt);
+            }
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                formComponentMoved(evt);
+            }
+        });
 
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
@@ -405,6 +418,14 @@ public class Menu extends javax.swing.JFrame implements CollectorUpdate {
         Resources.main(null);
     }//GEN-LAST:event_butResourcesActionPerformed
 
+    private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
+        Global.getConfig().saveWindowPositionAndSize("menu.window", this);
+    }//GEN-LAST:event_formComponentResized
+
+    private void formComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentMoved
+        Global.getConfig().saveWindowPositionAndSize("menu.window", this);
+    }//GEN-LAST:event_formComponentMoved
+
     /**
      * @param args the command line arguments
      */
@@ -485,13 +506,25 @@ public class Menu extends javax.swing.JFrame implements CollectorUpdate {
                     K8sStatus status = item.getStatus();
                     if (!status.okay || chShowAllConditions.isSelected()) {
                         for (K8sCondition c : status.details.values()) {
-                            String[] line = new String[5];
-                            line[0] = item.getName();
-                            line[1] = item.getKind();
-                            line[2] = c.type;
-                            line[3] = c.status.toString();
-                            line[4] = c.lastUpdateAge;
-                            tm.content.add(line);
+                            if (c.isAnIssue == K8sCondition.Status.True || chShowAllConditions.isSelected()) {
+                                String[] line = new String[5];
+                                line[0] = item.getName();
+                                line[1] = item.getKind();
+                                line[2] = c.type;
+                                switch (c.isAnIssue) {
+                                    case False:
+                                        line[3] = c.status.toString() + " (ok)";
+                                        break;
+                                    case Unknown:
+                                        line[3] = c.status.toString() + " (?)";
+                                        break;
+                                    case True:
+                                        line[3] = c.status.toString() + " (!)";
+                                        break;
+                                }
+                                line[4] = c.lastUpdateAge;
+                                tm.content.add(line);
+                            }
                         }
                     }
                 }

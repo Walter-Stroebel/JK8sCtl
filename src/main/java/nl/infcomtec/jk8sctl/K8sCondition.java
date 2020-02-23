@@ -22,34 +22,40 @@ public class K8sCondition {
         True, False, Unknown
     };
     public final Status status;
+    public Status isAnIssue;
     public final String lastTransitionAge;
     public final String lastUpdateAge;
     public final long lastTransitionTime;
     public final long lastUpdateTime;
 
-    public K8sCondition(String type, Status status) {
+    public K8sCondition(String type, Status status, Status isAnIssue) {
         this.type = type;
         this.status = status;
         this.lastTransitionAge = "Unknown";
         this.lastTransitionTime = 0;
         this.lastUpdateAge = "Unknown";
         this.lastUpdateTime = 0;
+        this.isAnIssue = isAnIssue;
     }
 
     public K8sCondition(V1PodCondition c) {
         type = c.getType();
         if (null == c.getStatus()) {
             status = Status.Unknown;
+            isAnIssue = Status.True;
         } else {
             switch (c.getStatus().toLowerCase()) {
                 case "false":
                     status = Status.False;
+                    isAnIssue = Status.Unknown;
                     break;
                 case "true":
                     status = Status.True;
+                    isAnIssue = Status.Unknown;
                     break;
                 default:
                     status = Status.Unknown;
+                    isAnIssue = Status.True;
                     break;
             }
         }
@@ -79,16 +85,20 @@ public class K8sCondition {
         type = c.getType();
         if (null == c.getStatus()) {
             status = Status.Unknown;
+            isAnIssue = Status.True;
         } else {
             switch (c.getStatus().toLowerCase()) {
                 case "false":
                     status = Status.False;
+                    isAnIssue = Status.Unknown;
                     break;
                 case "true":
                     status = Status.True;
+                    isAnIssue = Status.Unknown;
                     break;
                 default:
                     status = Status.Unknown;
+            isAnIssue = Status.True;
                     break;
             }
         }
@@ -118,16 +128,20 @@ public class K8sCondition {
         type = c.getType();
         if (null == c.getStatus()) {
             status = Status.Unknown;
+                    isAnIssue = Status.True;
         } else {
             switch (c.getStatus().toLowerCase()) {
                 case "false":
                     status = Status.False;
+                    isAnIssue = Status.Unknown;
                     break;
                 case "true":
                     status = Status.True;
+                    isAnIssue = Status.Unknown;
                     break;
                 default:
                     status = Status.Unknown;
+                    isAnIssue = Status.True;
                     break;
             }
         }
@@ -157,16 +171,20 @@ public class K8sCondition {
         type = c.getType();
         if (null == c.getStatus()) {
             status = Status.Unknown;
+                    isAnIssue = Status.True;
         } else {
             switch (c.getStatus().toLowerCase()) {
                 case "false":
                     status = Status.False;
+                    isAnIssue = Status.Unknown;
                     break;
                 case "true":
                     status = Status.True;
+                    isAnIssue = Status.Unknown;
                     break;
                 default:
                     status = Status.Unknown;
+                    isAnIssue = Status.True;
                     break;
             }
         }

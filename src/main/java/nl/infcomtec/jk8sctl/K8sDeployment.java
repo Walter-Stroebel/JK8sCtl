@@ -93,14 +93,22 @@ public class K8sDeployment extends AbstractAppReference {
         for (V1DeploymentCondition cond : conditions) {
             String t = cond.getType();
             String s = cond.getStatus();
+            K8sCondition kc = new K8sCondition(cond);
             if (s.equals("Unknown")) {
                 ret.okay = false;
+                kc.isAnIssue=K8sCondition.Status.True;
             } else if (t.equals("Progressing") && !s.equals("True")) {
                 ret.okay = false;
+                kc.isAnIssue=K8sCondition.Status.True;
+            } else if (t.equals("Progressing") && s.equals("True")) {
+                kc.isAnIssue=K8sCondition.Status.False;
             } else if (t.endsWith("Available") && !s.equals("True")) {
                 ret.okay = false;
+                kc.isAnIssue=K8sCondition.Status.True;
+            } else if (t.endsWith("Available") && s.equals("True")) {
+                kc.isAnIssue=K8sCondition.Status.False;
             }
-            ret.details.put(t, new K8sCondition(cond));
+            ret.details.put(t, kc);
         }
         if (null == k8s.getSpec()) {
             ret.okay = false;
@@ -108,9 +116,9 @@ public class K8sDeployment extends AbstractAppReference {
             int desRep = k8s.getSpec().getReplicas();
             if (actRep != desRep) {
                 ret.okay = false;
-                ret.details.put("Replicas", new K8sCondition(String.format("Replicas %d of %d",actRep,desRep), K8sCondition.Status.False));
+                ret.details.put("Replicas", new K8sCondition(String.format("Replicas %d of %d",actRep,desRep), K8sCondition.Status.False,K8sCondition.Status.True));
             } else {
-                ret.details.put("Replicas", new K8sCondition(String.format("Replicas %d of %d",actRep,desRep), K8sCondition.Status.True));
+                ret.details.put("Replicas", new K8sCondition(String.format("Replicas %d of %d",actRep,desRep), K8sCondition.Status.True,K8sCondition.Status.False));
             }
         }
         return ret;

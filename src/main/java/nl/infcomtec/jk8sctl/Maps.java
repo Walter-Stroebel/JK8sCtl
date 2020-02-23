@@ -9,6 +9,7 @@ import io.kubernetes.client.apis.AppsV1Api;
 import io.kubernetes.client.apis.CoreV1Api;
 import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.models.V1Container;
+import io.kubernetes.client.models.V1ContainerStatus;
 import io.kubernetes.client.models.V1Deployment;
 import io.kubernetes.client.models.V1DeploymentList;
 import io.kubernetes.client.models.V1Endpoints;
@@ -20,17 +21,27 @@ import io.kubernetes.client.models.V1NodeList;
 import io.kubernetes.client.models.V1ObjectMeta;
 import io.kubernetes.client.models.V1Pod;
 import io.kubernetes.client.models.V1PodList;
+import io.kubernetes.client.models.V1PodStatus;
 import io.kubernetes.client.models.V1ReplicationController;
 import io.kubernetes.client.models.V1ReplicationControllerList;
 import io.kubernetes.client.models.V1Service;
 import io.kubernetes.client.models.V1ServiceList;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentSkipListMap;
-import nl.infcomtec.jk8sctl.gui.CollectorUpdate;
+import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.connection.channel.direct.Session;
+import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import org.joda.time.DateTime;
 
 /**
@@ -39,11 +50,12 @@ import org.joda.time.DateTime;
  */
 public class Maps {
 
-    public static final ConcurrentSkipListMap<Integer, Metadata> items = new ConcurrentSkipListMap<>();
-    public static final ConcurrentSkipListMap<String, Integer> spaces = new ConcurrentSkipListMap<>();
     public static final ConcurrentSkipListMap<String, TreeSet<Integer>> apps = new ConcurrentSkipListMap<>();
-    public static final ConcurrentSkipListMap<String, K8sResources> nodes = new ConcurrentSkipListMap<>();
+    public static final ConcurrentSkipListMap<Integer, Metadata> items = new ConcurrentSkipListMap<>();
     private static final ConcurrentLinkedDeque<CollectorUpdate> needUpdate = new ConcurrentLinkedDeque<>();
+    public static final ConcurrentSkipListMap<String, K8sResources> nodes = new ConcurrentSkipListMap<>();
+    public static final ConcurrentSkipListMap<String, PodDockerStats> podDockerStats = new ConcurrentSkipListMap<>();
+    public static final ConcurrentSkipListMap<String, Integer> spaces = new ConcurrentSkipListMap<>();
 
     private static void add(Metadata md) {
         items.put(md.getMapId(), md);
@@ -60,19 +72,6 @@ public class Maps {
                 set.add(md.getMapId());
             }
         }
-    }
-
-    public static void doUpdate(CollectorUpdate f) {
-        needUpdate.add(f);
-    }
-
-    public static String[] getSpaces() {
-        String[] ret = new String[spaces.size()];
-        int i = 0;
-        for (String k : spaces.keySet()) {
-            ret[i++] = k;
-        }
-        return ret;
     }
 
     /**
@@ -225,5 +224,136 @@ public class Maps {
                 it.remove();
             }
         }
+    }
+
+    public static void doUpdate(CollectorUpdate f) {
+        needUpdate.add(f);
+    }
+
+    public static void getNodeDockerStats(K8sNode node) throws Exception {
+        K8sCtlCfg config = Global.getConfig();
+        K8sResources resources = node.getResources();
+        // need to figure this out
+        String hostFile = config.getModString("nodessh.hostFile", new File(Global.workDir, "known_nodes").getAbsolutePath(), true);
+        String nodeUser = config.getModString("nodessh.nodeUser", "root", true);
+        String publicKF = config.getModString("nodessh.publicKeyFile", new File(new File(Global.homeDir, ".ssh"), "id_rsa").getAbsolutePath(), true);
+        SSHClient ssh = new SSHClient();
+        ssh.addHostKeyVerifier(new PromiscuousVerifier());
+        ssh.connect(node.getName());
+        ssh.authPublickey(nodeUser, publicKF);
+        try (Session session = ssh.startSession()) {
+            Session.Command cmd = session.exec("docker stats --format \"{{.ID}} {{.Name}} {{.CPUPerc}} {{.MemUsage}}\" --no-stream");
+            try (BufferedReader bfr = new BufferedReader(new InputStreamReader(cmd.getInputStream()))) {
+                for (String s = bfr.readLine(); s != null; s = bfr.readLine()) {
+                    PodDockerStats stats = new PodDockerStats(node.getName(), s,resources);
+                    podDockerStats.put(stats.dockerId, stats);
+                }
+            }
+            cmd.join();
+        }
+        ssh.disconnect();
+    }
+
+    public static String[] getSpaces() {
+        String[] ret = new String[spaces.size()];
+        int i = 0;
+        for (String k : spaces.keySet()) {
+            ret[i++] = k;
+        }
+        return ret;
+    }
+
+    public static String analyse() throws Exception {
+        try (StringWriter sw = new StringWriter()) {
+            try (PrintWriter pw = new PrintWriter(sw)) {
+                pw.println();
+                pw.format("%-20s", "Kubernetes Node");
+                pw.format("%-55s", "Namespace and pod name");
+                pw.format("%6s %8s %8s ", "CPU%", "Mem MiB", "Mem Max");
+                pw.format("%6s %8s %8s\n", "PodCPU", "PodMem", "PodMax");
+                podDockerStats.clear();
+                for (Metadata item : items.values()) {
+                    if (item instanceof K8sNode) {
+                        getNodeDockerStats((K8sNode) item);
+                    }
+                }
+                for (PodDockerStats e : podDockerStats.values()) {
+                    String docId = "docker://" + e.dockerId;
+                    for (Metadata item : items.values()) {
+                        if (item instanceof K8sPod) {
+                            K8sPod pod = (K8sPod) item;
+                            if (!pod.getNodeName().equalsIgnoreCase(e.node)) {
+                                continue;
+                            }
+                            V1PodStatus status = pod.getK8s().getStatus();
+                            List<V1ContainerStatus> containerStatuses = status.getContainerStatuses();
+                            for (V1ContainerStatus cs : containerStatuses) {
+                                if (cs.getContainerID().startsWith(docId)) {
+                                    e.pod = pod;
+                                    break;
+                                } else if (e.dockName.contains(item.getName())) {
+                                    e.pod = pod;
+                                }
+                            }
+                            if (null != e.pod) {
+                                break;
+                            }
+                        }
+                    }
+                }
+                for (PodDockerStats e : podDockerStats.values()) {
+                    pw.format("%-20s", e.node);
+                    pw.format("%-55s", null == e.pod ? e.dockerId : e.pod.getNSName());
+                    pw.format("%6.2f %8.2f %8.2f ", e.cpuPer, e.memUse / Global.MiBf, e.memMax / Global.MiBf);
+                    if (null!=e.pod){
+                        K8sResources rs = e.pod.getResources();
+                        pw.format("%6.2f %8.2f %8.2f\n", rs.cpuUsed*100.0/e.resources.cpuAvail, rs.memUsed / Global.MiBf, rs.memAvail / Global.MiBf);
+                    }else{
+                        pw.println();
+                    }
+                }
+            }
+            sw.flush();
+            return sw.toString();
+        }
+    }
+
+    public static class PodDockerStats {
+
+        public final String dockName;
+
+        public final String node;
+        public final String dockerId;
+        public final double cpuPer;
+        public final long memUse;
+        public final long memMax;
+        public K8sPod pod = null;
+        public final K8sResources resources;
+
+        public PodDockerStats(String node, String s,K8sResources resources) {
+            this.node = node;
+            this.resources=resources;
+            StringTokenizer toker = new StringTokenizer(s, " :/%");
+            dockerId = toker.nextToken();
+            dockName = toker.nextToken();
+            cpuPer = Double.parseDouble(toker.nextToken());
+            memUse = makeBytes(toker.nextToken());
+            memMax = makeBytes(toker.nextToken());
+        }
+
+        private static long makeBytes(String s) {
+            if (s.endsWith("KiB")) {
+                return Math.round(Double.parseDouble(s.substring(0, s.length() - 3)) * 1024.0);
+            } else if (s.endsWith("MiB")) {
+                return Math.round(Double.parseDouble(s.substring(0, s.length() - 3)) * 1024.0 * 1024.0);
+            } else if (s.endsWith("GiB")) {
+                return Math.round(Double.parseDouble(s.substring(0, s.length() - 3)) * 1024.0 * 1024.0 * 1024.0);
+            } else if (s.endsWith("TiB")) {
+                return Math.round(Double.parseDouble(s.substring(0, s.length() - 3)) * 1024.0 * 1024.0 * 1024.0 * 1024.0);
+            } else {
+                return Math.round(Double.parseDouble(s));
+            }
+        }
+
     }
 }

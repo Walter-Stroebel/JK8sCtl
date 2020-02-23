@@ -25,6 +25,15 @@ import javax.swing.JOptionPane;
  */
 public class Global {
 
+    public static final long MiB = 1024 * 1024;
+    public static final double MiBf = 1024.0 * 1024.0;
+    public static final long KiB = 1024;
+    public static final double KiBf = 1024.0;
+    public static final long GiB = 1024 * 1024 * 1024;
+    public static final double GiBf = 1024.0 * 1024.0 * 1024.0;
+    public static final long TiB = 1024 * 1024 * 1024 * 1024;
+    public static final double TGiBf = 1024.0 * 1024.0 * 1024.0 * 1024.0;
+
     /**
      * Global Gson engine with readability option set.
      */
@@ -72,10 +81,10 @@ public class Global {
                 ApiClient c = Config.fromConfig(kCfg);
                 return c;
             } catch (IOException ex) {
-                int ans=JOptionPane.showConfirmDialog(null, String.format("Cannot connect to %s.%s\nConnect to default cluster instead?", getK8sConfig(), getK8sContext()));
-                if (ans==JOptionPane.YES_OPTION) {
-                    getConfig().k8sConfig=null;
-                    getConfig().k8sContext=null;
+                int ans = JOptionPane.showConfirmDialog(null, String.format("Cannot connect to %s.%s\nConnect to default cluster instead?", getK8sConfig(), getK8sContext()));
+                if (ans == JOptionPane.YES_OPTION) {
+                    getConfig().k8sConfig = null;
+                    getConfig().k8sContext = null;
                     getConfig().saveConfig();
                     return Config.defaultClient();
                 }
@@ -89,7 +98,7 @@ public class Global {
         return getConfig().k8sConfig;
     }
 
-    public  static String getK8sContext() {
+    public static String getK8sContext() {
         return getConfig().k8sContext;
     }
 
@@ -112,6 +121,16 @@ public class Global {
             config = K8sCtlCfg.loadConfig();
         } catch (IOException ex) {
             Logger.getLogger(Global.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return config;
+    }
+
+    public static K8sCtlCfg setConfigFile(String arg) {
+        try {
+            config = K8sCtlCfg.loadConfig(arg);
+        } catch (IOException ex) {
+            Logger.getLogger(Global.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(2);
         }
         return config;
     }

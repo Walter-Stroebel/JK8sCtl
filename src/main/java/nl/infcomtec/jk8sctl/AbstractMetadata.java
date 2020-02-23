@@ -91,6 +91,9 @@ public abstract class AbstractMetadata implements Metadata {
 
     @Override
     public final String getNSName() {
+        if (getNamespace().isEmpty()) {
+            return getName();
+        }
         return getNamespace() + "." + getName();
     }
 
@@ -124,7 +127,7 @@ public abstract class AbstractMetadata implements Metadata {
                         if (null != o) {
                             DefaultMutableTreeNode k = new DefaultMutableTreeNode(m.getName().substring(3));
                             if (o instanceof List) {
-                                for (Object o2:(List)o) {
+                                for (Object o2 : (List) o) {
                                     dumpBean(o2, o2.getClass().getSimpleName(), k);
                                 }
                             } else if (o.getClass().getSimpleName().startsWith("V1")) {
@@ -176,8 +179,11 @@ public abstract class AbstractMetadata implements Metadata {
 
     @Override
     public String toString() {
-        if (kind.equals("namespace")) return kind+":"+getName();
-        else return kind+":"+getNSName();
+        if (kind.equals("namespace")) {
+            return kind + ":" + getName();
+        } else {
+            return kind + ":" + getNSName();
+        }
     }
 
     protected void post(StringBuilder sb) {

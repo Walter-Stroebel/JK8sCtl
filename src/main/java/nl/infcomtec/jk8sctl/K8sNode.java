@@ -46,8 +46,8 @@ public class K8sNode extends AbstractMetadata {
                         break;
                 }
             }
-            for (V1ContainerImage e:k8s.getStatus().getImages()){
-                ret.dskUsed+=e.getSizeBytes();
+            for (V1ContainerImage e : k8s.getStatus().getImages()) {
+                ret.dskUsed += e.getSizeBytes();
             }
         } catch (Exception any) {
             Global.warn("Failed to collect node resources %s", any.toString());
@@ -66,23 +66,33 @@ public class K8sNode extends AbstractMetadata {
         for (V1NodeCondition cond : conditions) {
             String t = cond.getType();
             String s = cond.getStatus();
+            K8sCondition kc = new K8sCondition(cond);
             if (s.equals("Unknown")) {
                 ret.okay = false;
+                kc.isAnIssue = K8sCondition.Status.True;
             } else if (t.equals("Ready") && !s.equals("True")) {
                 ret.okay = false;
-            } else if (t.endsWith("Pressure") && s.equals("True")) {
-                ret.okay = false;
+                kc.isAnIssue = K8sCondition.Status.True;
+            } else if (t.equals("Ready") && s.equals("True")) {
+                kc.isAnIssue = K8sCondition.Status.False;
+            } else if (t.endsWith("Pressure")) {
+                if (s.equals("True")) {
+                    ret.okay = false;
+                    kc.isAnIssue = K8sCondition.Status.True;
+                } else {
+                    kc.isAnIssue = K8sCondition.Status.False;
+                }
             }
-            ret.details.put(t, new K8sCondition(cond));
+            ret.details.put(t, kc);
         }
         V1NodeSpec spec = k8s.getSpec();
         if (null == spec) {
             ret.okay = false;
-            ret.details.put("node.spec", new K8sCondition("node.spec", K8sCondition.Status.Unknown));
+            ret.details.put("node.spec", new K8sCondition("node.spec", K8sCondition.Status.Unknown, K8sCondition.Status.True));
         } else {
             if (null != spec.isUnschedulable() && spec.isUnschedulable()) {
                 ret.okay = false;
-                ret.details.put("Unschedulable", new K8sCondition("Unschedulable", K8sCondition.Status.True));
+                ret.details.put("Unschedulable", new K8sCondition("Unschedulable", K8sCondition.Status.True, K8sCondition.Status.False));
             }
         }
         return ret;

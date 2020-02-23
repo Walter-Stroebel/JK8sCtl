@@ -8,6 +8,7 @@ import java.awt.GridLayout;
 import java.util.Map;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
+import nl.infcomtec.jk8sctl.CollectorUpdate;
 import nl.infcomtec.jk8sctl.K8sResources;
 import nl.infcomtec.jk8sctl.Maps;
 
@@ -22,6 +23,8 @@ public class Resources extends javax.swing.JFrame implements CollectorUpdate {
      */
     public Resources() {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Kubernetes Resources");
+        setAlwaysOnTop(true);
         initComponents();
         Maps.doUpdate(this);
     }

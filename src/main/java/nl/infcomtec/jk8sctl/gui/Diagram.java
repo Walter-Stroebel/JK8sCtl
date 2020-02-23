@@ -20,6 +20,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import nl.infcomtec.jk8sctl.CollectorUpdate;
 import nl.infcomtec.jk8sctl.Global;
 import nl.infcomtec.jk8sctl.K8sRelation;
 import nl.infcomtec.jk8sctl.Maps;
@@ -29,13 +30,17 @@ import nl.infcomtec.jk8sctl.Metadata;
  *
  * @author walter
  */
-public class Diagram extends javax.swing.JFrame implements CollectorUpdate{
+public class Diagram extends javax.swing.JFrame implements CollectorUpdate {
 
     /**
      * Creates new form Menu
      */
     public Diagram() {
         initComponents();
+        setAlwaysOnTop(Global.getConfig().getModBoolean("diagram.alwaysontop", true, true));
+        if (!Global.getConfig().restoreWindowPositionAndSize("diagram.window", this)) {
+            Global.getConfig().saveWindowPositionAndSize("diagram.window", this);
+        }
         Maps.doUpdate(this);
     }
 
@@ -85,7 +90,9 @@ public class Diagram extends javax.swing.JFrame implements CollectorUpdate{
 
     @Override
     public boolean update() {
-        if (!isShowing()) return false;
+        if (!isShowing()) {
+            return false;
+        }
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -261,6 +268,15 @@ public class Diagram extends javax.swing.JFrame implements CollectorUpdate{
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Cluster diagram");
+        setAlwaysOnTop(true);
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                formComponentResized(evt);
+            }
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                formComponentMoved(evt);
+            }
+        });
 
         javax.swing.GroupLayout viewPanelLayout = new javax.swing.GroupLayout(viewPanel);
         viewPanel.setLayout(viewPanelLayout);
@@ -340,13 +356,21 @@ public class Diagram extends javax.swing.JFrame implements CollectorUpdate{
         jfc.setFileFilter(new FileNameExtensionFilter("GraphViz files", "dot", "DOT"));
         int ans = jfc.showSaveDialog(this);
         if (ans == JFileChooser.APPROVE_OPTION) {
-            try (PrintWriter pw = new PrintWriter(jfc.getSelectedFile())){
+            try (PrintWriter pw = new PrintWriter(jfc.getSelectedFile())) {
                 pw.print(genDot());
             } catch (Exception ex) {
                 Logger.getLogger(Diagram.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }//GEN-LAST:event_butExportDOTActionPerformed
+
+    private void formComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentMoved
+        Global.getConfig().saveWindowPositionAndSize("diagram.window", this);
+    }//GEN-LAST:event_formComponentMoved
+
+    private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
+        Global.getConfig().saveWindowPositionAndSize("diagram.window", this);
+    }//GEN-LAST:event_formComponentResized
 
     /**
      * @param args the command line arguments

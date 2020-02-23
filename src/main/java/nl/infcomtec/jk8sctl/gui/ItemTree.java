@@ -4,6 +4,7 @@
 package nl.infcomtec.jk8sctl.gui;
 
 import javax.swing.tree.DefaultTreeModel;
+import nl.infcomtec.jk8sctl.Global;
 import nl.infcomtec.jk8sctl.Maps;
 
 /**
@@ -17,6 +18,10 @@ public class ItemTree extends javax.swing.JFrame {
      */
     public ItemTree() {
         initComponents();
+        setAlwaysOnTop(Global.getConfig().getModBoolean("itemtree.alwaysontop", true, true));
+        if (!Global.getConfig().restoreWindowPositionAndSize("itemtree.window", this)) {
+            Global.getConfig().saveWindowPositionAndSize("itemtree.window", this);
+        }
     }
 
     /**
@@ -33,6 +38,14 @@ public class ItemTree extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("The gory details");
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                formComponentResized(evt);
+            }
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                formComponentMoved(evt);
+            }
+        });
 
         jTree1.setModel(new DefaultTreeModel(Maps.items.get(0).getTree()));
         jScrollPane1.setViewportView(jTree1);
@@ -41,6 +54,14 @@ public class ItemTree extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void formComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentMoved
+         Global.getConfig().saveWindowPositionAndSize("itemtree.window", this);
+    }//GEN-LAST:event_formComponentMoved
+
+    private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
+        Global.getConfig().saveWindowPositionAndSize("itemtree.window", this);
+    }//GEN-LAST:event_formComponentResized
 
     /**
      * @param args the command line arguments
