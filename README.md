@@ -1,6 +1,8 @@
 # JK8sCtl
 Tooling for Kubernetes
 
+Much more information in the Wiki!
+
 Components:
 - Full graph of all objects in a cluster as a GraphViz graph
 - Multi-tab editor for Yaml files
