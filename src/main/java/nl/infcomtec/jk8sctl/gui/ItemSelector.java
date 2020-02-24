@@ -4,6 +4,7 @@
 package nl.infcomtec.jk8sctl.gui;
 
 import javax.swing.tree.DefaultMutableTreeNode;
+import nl.infcomtec.jk8sctl.Global;
 import nl.infcomtec.jk8sctl.Maps;
 import nl.infcomtec.jk8sctl.Metadata;
 
@@ -11,14 +12,17 @@ import nl.infcomtec.jk8sctl.Metadata;
  *
  * @author walter
  */
-public class Armageddon extends javax.swing.JFrame {
+public class ItemSelector extends javax.swing.JFrame {
 
     private DefaultMutableTreeNode items = new DefaultMutableTreeNode();
+    private final SelectedItemAction selItemAct;
 
     /**
-     * Creates new form Armageddon
+     * Creates new form ItemSelector
+     * @param selItemAct What to show and what to do.
      */
-    public Armageddon() {
+    public ItemSelector(SelectedItemAction selItemAct) {
+        this.selItemAct = selItemAct;
         for (Integer i : Maps.spaces.values()) {
             if (0 == i) {
                 continue;
@@ -33,6 +37,10 @@ public class Armageddon extends javax.swing.JFrame {
             }
         }
         initComponents();
+        setAlwaysOnTop(Global.getConfig().getModBoolean("treeselect.alwaysontop", true, true));
+        if (!Global.getConfig().restoreWindowPositionAndSize("treeselect.window", this)) {
+            Global.getConfig().saveWindowPositionAndSize("treeselect.window", this);
+        }
     }
 
     /**
@@ -51,23 +59,29 @@ public class Armageddon extends javax.swing.JFrame {
         butCancel = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Object deleter!");
+        setTitle("Item selector");
         setAlwaysOnTop(true);
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                formComponentResized(evt);
+            }
+            public void componentMoved(java.awt.event.ComponentEvent evt) {
+                formComponentMoved(evt);
+            }
+        });
 
-        jLabel1.setForeground(new java.awt.Color(204, 0, 51));
-        jLabel1.setText("Objects that can be deleted. Warning: can destroy your cluster!");
+        jLabel1.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
+        jLabel1.setText(selItemAct.topLine());
 
         jScrollPane1.setViewportView(jTree1);
 
-        butOk.setForeground(new java.awt.Color(204, 0, 51));
-        butOk.setText("Do it!");
+        butOk.setText("Select");
         butOk.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 butOkActionPerformed(evt);
             }
         });
 
-        butCancel.setForeground(new java.awt.Color(0, 204, 0));
         butCancel.setText("Cancel");
         butCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -85,7 +99,7 @@ public class Armageddon extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addGap(0, 213, Short.MAX_VALUE)
                         .addComponent(butCancel)
                         .addGap(11, 11, 11)
                         .addComponent(butOk)))
@@ -101,7 +115,7 @@ public class Armageddon extends javax.swing.JFrame {
                     .addComponent(butCancel)
                     .addComponent(butOk))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
+                .addComponent(jScrollPane1)
                 .addContainerGap())
         );
 
@@ -121,14 +135,23 @@ public class Armageddon extends javax.swing.JFrame {
             // ignore, user did not properly select an item
             return;
         }
-        KubeCtlAction.delete(selected);
-        dispose();
+        if (selItemAct.withSelected(selected)) {
+            dispose();
+        }
     }//GEN-LAST:event_butOkActionPerformed
+
+    private void formComponentMoved(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentMoved
+        Global.getConfig().saveWindowPositionAndSize("treeselect.window", this);
+    }//GEN-LAST:event_formComponentMoved
+
+    private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
+        Global.getConfig().saveWindowPositionAndSize("treeselect.window", this);
+    }//GEN-LAST:event_formComponentResized
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void select(final SelectedItemAction selItemAct) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -142,20 +165,22 @@ public class Armageddon extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Armageddon.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ItemSelector.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Armageddon.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ItemSelector.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Armageddon.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ItemSelector.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Armageddon.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ItemSelector.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
-                new Armageddon().setVisible(true);
+                new ItemSelector(selItemAct).setVisible(true);
             }
         });
     }

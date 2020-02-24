@@ -1,4 +1,5 @@
 #!/bin/bash
+export version=1.4
 # compiled from source, assuming current directory is project directory?
 if [ -f target/JK8sCtl-$version-jar-with-dependencies.jar ]; then
 	java -cp target/JK8sCtl-$version-jar-with-dependencies.jar $main

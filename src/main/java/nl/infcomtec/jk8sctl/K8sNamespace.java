@@ -40,7 +40,7 @@ public class K8sNamespace extends AbstractMetadata {
 
     @Override
     public DefaultMutableTreeNode getTree() {
-        DefaultMutableTreeNode ret = new DefaultMutableTreeNode(getKind());
+        DefaultMutableTreeNode ret = new DefaultMutableTreeNode(getKind()+"="+getName());
         ret.add(new DefaultMutableTreeNode(getName()));
         ret.add(new DefaultMutableTreeNode(getCreationTimestamp()));
         if (getMapId() == 0) {

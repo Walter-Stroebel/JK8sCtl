@@ -500,7 +500,18 @@ public class Application extends javax.swing.JFrame {
     }//GEN-LAST:event_butApplyActionPerformed
 
     private void butDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_butDeleteActionPerformed
-        Armageddon.main(new String[]{});
+        ItemSelector.select(new SelectedItemAction() {
+            @Override
+            public String topLine() {
+                return "Objects that can be deleted. Warning: can destroy your cluster!";
+            }
+
+            @Override
+            public boolean withSelected(Metadata item) {
+                KubeCtlAction.delete(item);
+                return true;
+            }
+        });
     }//GEN-LAST:event_butDeleteActionPerformed
 
     private String dnsClean(String namespace) {

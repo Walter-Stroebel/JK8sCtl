@@ -117,7 +117,7 @@ public class KubeCtlAction extends javax.swing.JFrame {
                 jTextArea1.setText(delete.in.toString() + "\n" + "Return status: " + delete.ret);
             }
         } catch (Exception ex) {
-            Logger.getLogger(Armageddon.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ItemSelector.class.getName()).log(Level.SEVERE, null, ex);
             jTextArea1.setText("Exception: " + ex.toString());
         }
     }//GEN-LAST:event_butOkActionPerformed
@@ -138,7 +138,7 @@ public class KubeCtlAction extends javax.swing.JFrame {
                 try {
                     RunKubeCtl delete = RunKubeCtl.delete(metadata);
                 } catch (Exception ex) {
-                    Logger.getLogger(Armageddon.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(ItemSelector.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }.start();
