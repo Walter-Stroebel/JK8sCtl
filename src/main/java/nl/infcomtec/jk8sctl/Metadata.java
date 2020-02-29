@@ -4,7 +4,6 @@
 package nl.infcomtec.jk8sctl;
 
 import java.util.TreeMap;
-import java.util.UUID;
 import javax.swing.tree.DefaultMutableTreeNode;
 import org.joda.time.DateTime;
 
@@ -12,8 +11,10 @@ import org.joda.time.DateTime;
  *
  * @author walter
  */
-public interface Metadata {
-K8sStatus getStatus();
+public interface Metadata extends Comparable<Metadata>{
+
+    K8sStatus getStatus();
+
     /**
      *
      * @return the kind of object
@@ -28,13 +29,13 @@ K8sStatus getStatus();
     /**
      * @return the uid
      */
-    UUID getUUID();
+//    UUID getUUID();
 
     /**
      *
      * @return the UUID as a string
      */
-    String getUid();
+//    String getUid();
 
     /**
      * @return the name
@@ -75,6 +76,7 @@ K8sStatus getStatus();
 
     /**
      * For tree display
+     *
      * @return root of this (sub) tree
      */
     DefaultMutableTreeNode getTree();

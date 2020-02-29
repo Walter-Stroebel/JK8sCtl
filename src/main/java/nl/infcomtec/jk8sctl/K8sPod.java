@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.swing.tree.DefaultMutableTreeNode;
-import static nl.infcomtec.jk8sctl.Global.GiBf;
 
 /**
  *
@@ -57,17 +56,15 @@ public class K8sPod extends AbstractAppReference {
                 List<V1Container> containers = k8s.getSpec().getContainers();
                 for (V1Container c : containers) {
                     V1ResourceRequirements resources = c.getResources();
-                    Map<String, Quantity> limits = resources.getLimits();
-                    if (null == limits) {
-                        ret.okay = false;
-                        K8sCondition kc = new K8sCondition("Limits", K8sCondition.Status.Unknown, K8sCondition.Status.True);
-                        ret.details.put("Limits", kc);
-                    }
                     Map<String, Quantity> requests = resources.getRequests();
                     if (null == requests) {
-                        ret.okay = false;
-                        K8sCondition kc = new K8sCondition("Requests", K8sCondition.Status.Unknown, K8sCondition.Status.True);
-                        ret.details.put("Requests", kc);
+                        Map<String, Quantity> limits = resources.getLimits();
+                        if (null == limits) {
+                            // neither limits nor requests specified, this is not good
+                            ret.okay = false;
+                            K8sCondition kc = new K8sCondition("Requests", K8sCondition.Status.Unknown, K8sCondition.Status.True);
+                            ret.details.put("Requests", kc);
+                        }
                     }
                 }
             } catch (Exception any) {
@@ -80,8 +77,7 @@ public class K8sPod extends AbstractAppReference {
     /**
      * From limits and requests - if filled in!
      * <p>
-     * I must say ... this really feels unfinished. I am probably missing
-     * something but this can't be how Kubernetes manages resources, can it?
+     * Note that a name space can hold defaults for these settings.
      *
      * @return limits is mapped as "avail", requests is mapped as "used"
      */
@@ -96,23 +92,34 @@ public class K8sPod extends AbstractAppReference {
                     ret.cpuAvail = limits.get("cpu").getNumber().doubleValue();
                     ret.memAvail = limits.get("memory").getNumber().doubleValue();
                 } catch (Exception nullPointer) {
-                    // sane maxima
-                    ret.cpuAvail = 1;
-                    ret.memAvail = GiBf;
                 }
                 Map<String, Quantity> requests = resources.getRequests();
                 try {
                     ret.cpuUsed = requests.get("cpu").getNumber().doubleValue();
                     ret.memUsed = requests.get("memory").getNumber().doubleValue();
                 } catch (Exception nullPointer) {
-                    // sane minima
-                    ret.cpuAvail = 0.1;
-                    ret.memAvail = GiBf * 0.1;
                 }
             }
         } catch (Exception any) {
             // we tried
         }
+        // in case only requests are filled in, limits=requests
+        if (ret.cpuUsed > ret.cpuAvail) {
+            ret.cpuAvail = ret.cpuUsed;
+        }
+        if (ret.memUsed > ret.memAvail) {
+            ret.memAvail = ret.memUsed;
+        }
+        // in case only limits are filled in, requests=limits
+        if (ret.cpuAvail > ret.cpuUsed) {
+            ret.cpuUsed = ret.cpuAvail;
+        }
+        if (ret.memAvail > ret.memUsed) {
+            ret.memUsed = ret.memAvail;
+        }
+        // at least SOME cpu & mem...
+        if (ret.cpuAvail<0.0001) ret.cpuAvail=ret.cpuUsed=0.005;
+        if (ret.memAvail<10000)ret.memAvail=ret.memUsed=5*Global.MiBf;
         return ret;
     }
 

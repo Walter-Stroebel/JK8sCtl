@@ -7,6 +7,7 @@ import io.kubernetes.client.models.V1DeploymentCondition;
 import io.kubernetes.client.models.V1NodeCondition;
 import io.kubernetes.client.models.V1PodCondition;
 import io.kubernetes.client.models.V1ReplicationControllerCondition;
+import java.util.Map;
 import nl.infcomtec.basicutils.ShowValues;
 import org.joda.time.DateTime;
 
@@ -36,6 +37,49 @@ public class K8sCondition {
         this.lastUpdateAge = "Unknown";
         this.lastUpdateTime = 0;
         this.isAnIssue = isAnIssue;
+    }
+
+    public K8sCondition(Map<String, Object> cond) {
+        type = (String) cond.get("type");
+        if (null == cond.get("status")) {
+            status = Status.Unknown;
+            isAnIssue = Status.True;
+        } else {
+            switch ((String) cond.get("status")) {
+                case "false":
+                    status = Status.False;
+                    isAnIssue = Status.Unknown;
+                    break;
+                case "true":
+                    status = Status.True;
+                    isAnIssue = Status.Unknown;
+                    break;
+                default:
+                    status = Status.Unknown;
+                    isAnIssue = Status.True;
+                    break;
+            }
+        }
+        {
+            DateTime dt = DateTime.parse((String) cond.get("lastTransitionTime"));
+            if (null == dt) {
+                lastTransitionAge = "Unknown";
+                lastTransitionTime = 0;
+            } else {
+                lastTransitionTime = dt.getMillis();
+                lastTransitionAge = ShowValues.elaspedFromMillis(System.currentTimeMillis() - lastTransitionTime);
+            }
+        }
+        {
+            DateTime dt = DateTime.parse((String) cond.get("lastUpdateTime"));
+            if (null == dt) {
+                lastUpdateAge = "Unknown";
+                lastUpdateTime = 0;
+            } else {
+                lastUpdateTime = dt.getMillis();
+                lastUpdateAge = ShowValues.elaspedFromMillis(System.currentTimeMillis() - lastUpdateTime);
+            }
+        }
     }
 
     public K8sCondition(V1PodCondition c) {
@@ -98,7 +142,7 @@ public class K8sCondition {
                     break;
                 default:
                     status = Status.Unknown;
-            isAnIssue = Status.True;
+                    isAnIssue = Status.True;
                     break;
             }
         }
@@ -128,7 +172,7 @@ public class K8sCondition {
         type = c.getType();
         if (null == c.getStatus()) {
             status = Status.Unknown;
-                    isAnIssue = Status.True;
+            isAnIssue = Status.True;
         } else {
             switch (c.getStatus().toLowerCase()) {
                 case "false":
@@ -171,7 +215,7 @@ public class K8sCondition {
         type = c.getType();
         if (null == c.getStatus()) {
             status = Status.Unknown;
-                    isAnIssue = Status.True;
+            isAnIssue = Status.True;
         } else {
             switch (c.getStatus().toLowerCase()) {
                 case "false":

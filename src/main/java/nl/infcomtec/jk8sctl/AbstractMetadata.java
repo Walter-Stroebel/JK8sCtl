@@ -7,7 +7,6 @@ import io.kubernetes.client.models.V1ObjectMeta;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -31,6 +30,15 @@ public abstract class AbstractMetadata implements Metadata {
     }
 
     @Override
+    public int compareTo(Metadata o) {
+        int c = getKind().compareTo(o.getKind());
+        if (0 == c) {
+            return o.getNSName().compareTo(getNSName());
+        }
+        return c;
+    }
+
+    @Override
     public final DateTime getCreationTimestamp() {
         try {
             return metadata.getCreationTimestamp();
@@ -48,19 +56,19 @@ public abstract class AbstractMetadata implements Metadata {
         }
     }
 
-    @Override
-    public final UUID getUUID() {
-        try {
-            return UUID.fromString(metadata.getUid());
-        } catch (Exception any) {
-            return null;
-        }
-    }
-
-    @Override
-    public final String getUid() {
-        return metadata.getUid();
-    }
+//    @Override
+//    public final UUID getUUID() {
+//        try {
+//            return UUID.fromString(metadata.getUid());
+//        } catch (Exception any) {
+//            return null;
+//        }
+//    }
+//
+//    @Override
+//    public final String getUid() {
+//        return metadata.getUid();
+//    }
 
     /**
      * @return the kind
