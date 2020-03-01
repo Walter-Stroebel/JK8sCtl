@@ -23,7 +23,7 @@ public class K8sNode extends AbstractMetadata {
     private V1Node k8s;
 
     public K8sNode(int mapId, V1Node k8s) {
-        super(mapId, "node", k8s.getMetadata());
+        super(mapId, Kinds.node, k8s.getMetadata());
         this.k8s = k8s;
     }
 

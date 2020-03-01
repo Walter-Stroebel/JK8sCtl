@@ -20,10 +20,10 @@ import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import kubie.Maps;
 import nl.infcomtec.jk8sctl.CollectorUpdate;
 import nl.infcomtec.jk8sctl.Global;
 import nl.infcomtec.jk8sctl.K8sRelation;
-import nl.infcomtec.jk8sctl.Maps;
 import nl.infcomtec.jk8sctl.Metadata;
 
 /**
@@ -50,36 +50,38 @@ public class Diagram extends javax.swing.JFrame implements CollectorUpdate {
         TreeSet<Integer> uniq = new TreeSet<>();
         for (Metadata item : Maps.items.values()) {
             switch (item.getKind()) {
-                case "namespace":
+                case namespace:
                     if (!chNamespaces.isSelected()) {
                         continue;
                     }
                     break;
-                case "deployment":
+                case deployment:
                     if (!chDeployments.isSelected()) {
                         continue;
                     }
                     break;
-                case "pod":
+                case pod:
                     if (!chPods.isSelected()) {
                         continue;
                     }
                     break;
-                case "service":
+                case service:
                     if (!chServices.isSelected()) {
                         continue;
                     }
                     break;
-                case "endpoints":
+                case endpoints:
                     if (!chEndpoints.isSelected()) {
                         continue;
                     }
                     break;
-                case "node":
+                case node:
                     if (!chNodes.isSelected()) {
                         continue;
                     }
                     break;
+                default:
+                    continue;
             }
             dot.append(item.getDotNode());
             draw(item.getMapId(), uniq, dot);
@@ -294,14 +296,12 @@ public class Diagram extends javax.swing.JFrame implements CollectorUpdate {
         jToolBar1.setFloatable(false);
         jToolBar1.setRollover(true);
 
-        chNamespaces.setSelected(true);
         chNamespaces.setText("Namespaces");
         chNamespaces.setFocusable(false);
         chNamespaces.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(chNamespaces);
         jToolBar1.add(jSeparator1);
 
-        chDeployments.setSelected(true);
         chDeployments.setText("Deployments");
         chDeployments.setFocusable(false);
         chDeployments.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -375,7 +375,7 @@ public class Diagram extends javax.swing.JFrame implements CollectorUpdate {
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void main(String args[]) throws Exception {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.

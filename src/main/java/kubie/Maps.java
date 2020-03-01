@@ -7,15 +7,19 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
+import nl.infcomtec.jk8sctl.CollectorUpdate;
 import nl.infcomtec.jk8sctl.Global;
+import nl.infcomtec.jk8sctl.Kinds;
 import nl.infcomtec.jk8sctl.Metadata;
 import org.yaml.snakeyaml.Yaml;
 
@@ -25,7 +29,9 @@ import org.yaml.snakeyaml.Yaml;
  */
 public class Maps {
 
-    private static final Map<Integer, K8sObject> items = new HashMap<>();
+    private static final ConcurrentLinkedDeque<CollectorUpdate> needUpdate = new ConcurrentLinkedDeque<>();
+
+    public static final Map<Integer, K8sObject> items = new HashMap<>();
     private static final Comparator<Metadata> mdComp = new Comparator<Metadata>() {
 
         @Override
@@ -60,7 +66,7 @@ public class Maps {
         return null;
     }
 
-    public static LinkedList<K8sObject> getAll(String forKind) {
+    public static LinkedList<K8sObject> getAll(Kinds forKind) {
         LinkedList<K8sObject> ret = new LinkedList<>();
         synchronized (items) {
             if (null == forKind) {
@@ -93,7 +99,7 @@ public class Maps {
         return ret;
     }
 
-    public static K8sObject get(String forKind, String name) {
+    public static K8sObject get(Kinds forKind, String name) {
         LinkedList<K8sObject> sel = getAll(forKind);
         for (K8sObject obj : sel) {
             if (obj.getNSName().equals(name)) {
@@ -107,28 +113,7 @@ public class Maps {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
-        Yaml yaml = new Yaml();
-        for (String what : new String[]{"namespaces", "nodes"}) {
-            ProcessBuilder pb = new ProcessBuilder("kubectl", "get", what, "-o", "yaml");
-            pb.inheritIO();
-            pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-            Process p = pb.start();
-            Object load = yaml.load(p.getInputStream());
-            if (0 != p.waitFor()) {
-                Global.warn("Calling kubectl failed; is the cluster accessible?");
-                System.exit(1);
-            }
-            copy(load);
-        }
-        for (String what : new String[]{"endpoints", "deployments", "replicationcontrollers", "pods", "services", "secrets", "limits"}) {
-            ProcessBuilder pb = new ProcessBuilder("kubectl", "get", what, "-A", "-o", "yaml");
-            pb.inheritIO();
-            pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
-            Process p = pb.start();
-            Object load = yaml.load(p.getInputStream());
-            System.out.println(p.waitFor());
-            copy(load);
-        }
+        collect();
         MakeGraph mg = new MakeGraph() {
             @Override
             public int getEdge(String key) {
@@ -180,6 +165,59 @@ public class Maps {
         jf.getContentPane().add(pane);
         jf.pack();
         jf.setVisible(true);
+    }
+
+    public static void collect() throws Exception {
+        synchronized (items) {
+            items.clear();
+            Yaml yaml = new Yaml();
+            for (String what : new String[]{"namespaces", "nodes"}) {
+                ProcessBuilder pb;
+                if (null == Global.getK8sConfig()) {
+                    pb = new ProcessBuilder(Global.kubeCtlPrg(), "get", what, "-o", "yaml");
+                } else {
+                    pb = new ProcessBuilder(Global.kubeCtlPrg(), "--kubeconfig=" + Global.getK8sConfig(), "--context=" + Global.getK8sContext(), "get", what, "-o", "yaml");
+                }
+                pb.inheritIO();
+                pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+                Process p = pb.start();
+                Object load = yaml.load(p.getInputStream());
+                if (0 != p.waitFor()) {
+                    Global.warn("Calling kubectl failed for " + what + "; is the cluster accessible?");
+                    System.exit(1);
+                }
+                copy(load);
+            }
+            for (String what : new String[]{"endpoints", "deployments", "replicationcontrollers", "pods", "services", "secrets", "limits"}) {
+                ProcessBuilder pb;
+                if (null == Global.getK8sConfig()) {
+                    pb = new ProcessBuilder(Global.kubeCtlPrg(), "get", what, "-A", "-o", "yaml");
+                } else {
+                    pb = new ProcessBuilder(Global.kubeCtlPrg(), "--kubeconfig=" + Global.getK8sConfig(), "--context=" + Global.getK8sContext(), "get", what, "-A", "-o", "yaml");
+                }
+                pb.inheritIO();
+                pb.redirectOutput(ProcessBuilder.Redirect.PIPE);
+                Process p = pb.start();
+                Object load = yaml.load(p.getInputStream());
+                if (0 != p.waitFor()) {
+                    Global.warn("Calling kubectl failed for " + what + "; is the cluster accessible?");
+                }
+                copy(load);
+            }
+        }
+        System.out.println("Collected " + items.size() + " objects");
+        for (Iterator<CollectorUpdate> it = needUpdate.iterator(); it.hasNext();) {
+            CollectorUpdate u = it.next();
+            synchronized (items) {
+                if (!u.update()) {
+                    it.remove();
+                }
+            }
+        }
+    }
+
+    public static void doUpdate(CollectorUpdate f) {
+        needUpdate.add(f);
     }
 
     public static boolean isAddress(Object object) {

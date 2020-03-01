@@ -12,7 +12,7 @@ import io.kubernetes.client.models.V1PodSpec;
  */
 public abstract class AbstractAppReference extends AbstractMetadata {
 
-    public AbstractAppReference(int mapId, String kind, V1ObjectMeta metadata) {
+    public AbstractAppReference(int mapId, Kinds kind, V1ObjectMeta metadata) {
         super(mapId, kind, metadata);
     }
 

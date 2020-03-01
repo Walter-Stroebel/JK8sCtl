@@ -76,15 +76,15 @@ public class RunKubeCtl {
         ProcessBuilder pb;
         if (!selected.getNamespace().isEmpty()) {
             if (null == Global.getK8sConfig()) {
-                pb = new ProcessBuilder(Global.kubeCtlPrg(), "delete", selected.getKind(), "-n", selected.getNamespace(), selected.getName());
+                pb = new ProcessBuilder(Global.kubeCtlPrg(), "delete", selected.getKind().name(), "-n", selected.getNamespace(), selected.getName());
             } else {
-                pb = new ProcessBuilder(Global.kubeCtlPrg(), "--kubeconfig=" + Global.getK8sConfig(), "--context=" + Global.getK8sContext(), "delete", selected.getKind(), "-n", selected.getNamespace(), selected.getName());
+                pb = new ProcessBuilder(Global.kubeCtlPrg(), "--kubeconfig=" + Global.getK8sConfig(), "--context=" + Global.getK8sContext(), "delete", selected.getKind().name(), "-n", selected.getNamespace(), selected.getName());
             }
         } else {
             if (null == Global.getK8sConfig()) {
-                pb = new ProcessBuilder(Global.kubeCtlPrg(), "delete", selected.getKind(), selected.getName());
+                pb = new ProcessBuilder(Global.kubeCtlPrg(), "delete", selected.getKind().name(), selected.getName());
             } else {
-                pb = new ProcessBuilder(Global.kubeCtlPrg(), "--kubeconfig=" + Global.getK8sConfig(), "--context=" + Global.getK8sContext(), "delete", selected.getKind(), selected.getName());
+                pb = new ProcessBuilder(Global.kubeCtlPrg(), "--kubeconfig=" + Global.getK8sConfig(), "--context=" + Global.getK8sContext(), "delete", selected.getKind().name(), selected.getName());
             }
         }
         RunKubeCtl rkc = new RunKubeCtl();

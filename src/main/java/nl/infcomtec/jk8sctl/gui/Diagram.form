@@ -67,7 +67,6 @@
       <SubComponents>
         <Component class="javax.swing.JCheckBox" name="chNamespaces">
           <Properties>
-            <Property name="selected" type="boolean" value="true"/>
             <Property name="text" type="java.lang.String" value="Namespaces"/>
             <Property name="focusable" type="boolean" value="false"/>
             <Property name="verticalTextPosition" type="int" value="3"/>
@@ -77,7 +76,6 @@
         </Component>
         <Component class="javax.swing.JCheckBox" name="chDeployments">
           <Properties>
-            <Property name="selected" type="boolean" value="true"/>
             <Property name="text" type="java.lang.String" value="Deployments"/>
             <Property name="focusable" type="boolean" value="false"/>
             <Property name="verticalTextPosition" type="int" value="3"/>

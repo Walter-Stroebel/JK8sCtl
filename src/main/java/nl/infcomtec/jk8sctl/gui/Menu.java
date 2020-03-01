@@ -342,7 +342,11 @@ public class Menu extends javax.swing.JFrame implements CollectorUpdate {
     }//GEN-LAST:event_mnDeleteItemActionPerformed
 
     private void mnDiagramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnDiagramActionPerformed
-        Diagram.main(null);
+        try {
+            Diagram.main(null);
+        } catch (Exception ex) {
+            Logger.getLogger(Menu.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_mnDiagramActionPerformed
 
     private void mnDebugActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnDebugActionPerformed
@@ -471,7 +475,7 @@ public class Menu extends javax.swing.JFrame implements CollectorUpdate {
                             if (c.isAnIssue == K8sCondition.Status.True || chShowAllConditions.isSelected()) {
                                 String[] line = new String[5];
                                 line[0] = item.getName();
-                                line[1] = item.getKind();
+                                line[1] = item.getKind().name();
                                 line[2] = c.type;
                                 switch (c.isAnIssue) {
                                     case False:

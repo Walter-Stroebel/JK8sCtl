@@ -19,7 +19,7 @@ public interface Metadata extends Comparable<Metadata>{
      *
      * @return the kind of object
      */
-    String getKind();
+    Kinds getKind();
 
     /**
      * @return the creationTimestamp

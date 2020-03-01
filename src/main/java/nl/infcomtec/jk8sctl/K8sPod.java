@@ -24,7 +24,7 @@ public class K8sPod extends AbstractAppReference {
     private final V1Pod k8s;
 
     public K8sPod(int mapId, V1Pod k8s) {
-        super(mapId, "pod", k8s.getMetadata());
+        super(mapId, Kinds.pod, k8s.getMetadata());
         this.k8s = k8s;
     }
 
@@ -162,28 +162,6 @@ public class K8sPod extends AbstractAppReference {
     @Override
     public TreeMap<Integer, K8sRelation> getRelations() {
         TreeMap<Integer, K8sRelation> ret = new TreeMap<>();
-        {
-            Integer ns = Maps.spaces.get(getNamespace());
-            if (null != ns) {
-                ret.put(ns, new K8sRelation(false, ns, "ns"));
-            }
-        }
-        String app = getApp();
-        if (null != app) {
-            for (Metadata md : Maps.items.values()) {
-                if (!md.getKind().equals(getKind()) && md.getNamespace().equals(getNamespace()) && md.getName().equals(app)) {
-                    ret.put(md.getMapId(), new K8sRelation(false, md.getMapId(), md.getKind()));
-                }
-            }
-        }
-        if (null != getNodeName()) {
-            String nn = getNodeName();
-            for (Metadata md : Maps.items.values()) {
-                if (md.getKind().equals("node") && md.getName().equals(nn)) {
-                    ret.put(md.getMapId(), new K8sRelation(false, md.getMapId(), md.getKind()));
-                }
-            }
-        }
         return ret;
     }
 

@@ -21,9 +21,9 @@ public abstract class AbstractMetadata implements Metadata {
     private final int mapId;
 
     protected final V1ObjectMeta metadata;
-    private final String kind;
+    private final Kinds kind;
 
-    public AbstractMetadata(int mapId, String kind, V1ObjectMeta metadata) {
+    public AbstractMetadata(int mapId, Kinds kind, V1ObjectMeta metadata) {
         this.mapId = mapId;
         this.metadata = metadata;
         this.kind = kind;
@@ -74,7 +74,7 @@ public abstract class AbstractMetadata implements Metadata {
      * @return the kind
      */
     @Override
-    public final String getKind() {
+    public final Kinds getKind() {
         return kind;
     }
 

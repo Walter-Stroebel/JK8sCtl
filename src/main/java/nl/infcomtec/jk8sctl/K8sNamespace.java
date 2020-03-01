@@ -14,7 +14,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public class K8sNamespace extends AbstractMetadata {
 
     public K8sNamespace(int mapId, V1Namespace metadata) {
-        super(mapId, "namespace", metadata.getMetadata());
+        super(mapId, Kinds.namespace, metadata.getMetadata());
     }
 
     @Override
@@ -32,9 +32,6 @@ public class K8sNamespace extends AbstractMetadata {
     @Override
     public TreeMap<Integer, K8sRelation> getRelations() {
         TreeMap<Integer, K8sRelation> ret = new TreeMap<>();
-        if (getMapId() != 0) {
-            ret.put(0, new K8sRelation(false, 0, ""));
-        }
         return ret;
     }
 
