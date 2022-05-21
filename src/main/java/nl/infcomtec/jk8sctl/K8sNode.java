@@ -4,11 +4,11 @@
 package nl.infcomtec.jk8sctl;
 
 import io.kubernetes.client.custom.Quantity;
-import io.kubernetes.client.models.V1ContainerImage;
-import io.kubernetes.client.models.V1Node;
-import io.kubernetes.client.models.V1NodeCondition;
-import io.kubernetes.client.models.V1NodeSpec;
-import io.kubernetes.client.models.V1NodeStatus;
+import io.kubernetes.client.openapi.models.V1ContainerImage;
+import io.kubernetes.client.openapi.models.V1Node;
+import io.kubernetes.client.openapi.models.V1NodeCondition;
+import io.kubernetes.client.openapi.models.V1NodeSpec;
+import io.kubernetes.client.openapi.models.V1NodeStatus;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -89,11 +89,6 @@ public class K8sNode extends AbstractMetadata {
         if (null == spec) {
             ret.okay = false;
             ret.details.put("node.spec", new K8sCondition("node.spec", K8sCondition.Status.Unknown, K8sCondition.Status.True));
-        } else {
-            if (null != spec.isUnschedulable() && spec.isUnschedulable()) {
-                ret.okay = false;
-                ret.details.put("Unschedulable", new K8sCondition("Unschedulable", K8sCondition.Status.True, K8sCondition.Status.False));
-            }
         }
         return ret;
     }

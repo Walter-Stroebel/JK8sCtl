@@ -3,10 +3,10 @@
  */
 package nl.infcomtec.jk8sctl;
 
-import io.kubernetes.client.models.V1DeploymentCondition;
-import io.kubernetes.client.models.V1NodeCondition;
-import io.kubernetes.client.models.V1PodCondition;
-import io.kubernetes.client.models.V1ReplicationControllerCondition;
+import io.kubernetes.client.openapi.models.V1DeploymentCondition;
+import io.kubernetes.client.openapi.models.V1NodeCondition;
+import io.kubernetes.client.openapi.models.V1PodCondition;
+import io.kubernetes.client.openapi.models.V1ReplicationControllerCondition;
 import nl.infcomtec.basicutils.ShowValues;
 import org.joda.time.DateTime;
 

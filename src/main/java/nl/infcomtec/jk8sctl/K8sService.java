@@ -3,9 +3,9 @@
  */
 package nl.infcomtec.jk8sctl;
 
-import io.kubernetes.client.models.V1PodSpec;
-import io.kubernetes.client.models.V1Service;
-import io.kubernetes.client.models.V1ServiceSpec;
+import io.kubernetes.client.openapi.models.V1PodSpec;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceSpec;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;

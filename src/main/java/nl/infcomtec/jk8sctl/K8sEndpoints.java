@@ -3,11 +3,11 @@
  */
 package nl.infcomtec.jk8sctl;
 
-import io.kubernetes.client.models.V1EndpointAddress;
-import io.kubernetes.client.models.V1EndpointPort;
-import io.kubernetes.client.models.V1EndpointSubset;
-import io.kubernetes.client.models.V1Endpoints;
-import io.kubernetes.client.models.V1PodSpec;
+import io.kubernetes.client.openapi.models.V1EndpointAddress;
+import io.kubernetes.client.openapi.models.V1EndpointPort;
+import io.kubernetes.client.openapi.models.V1EndpointSubset;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1PodSpec;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;

@@ -3,7 +3,7 @@
  */
 package nl.infcomtec.jk8sctl;
 
-import io.kubernetes.client.models.V1Namespace;
+import io.kubernetes.client.openapi.models.V1Namespace;
 import java.util.TreeMap;
 import javax.swing.tree.DefaultMutableTreeNode;
 

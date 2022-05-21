@@ -3,12 +3,12 @@
  */
 package nl.infcomtec.jk8sctl;
 
-import io.kubernetes.client.models.V1Deployment;
-import io.kubernetes.client.models.V1DeploymentCondition;
-import io.kubernetes.client.models.V1DeploymentSpec;
-import io.kubernetes.client.models.V1DeploymentStatus;
-import io.kubernetes.client.models.V1PodSpec;
-import io.kubernetes.client.models.V1PodTemplateSpec;
+import io.kubernetes.client.openapi.models.V1Deployment;
+import io.kubernetes.client.openapi.models.V1DeploymentCondition;
+import io.kubernetes.client.openapi.models.V1DeploymentSpec;
+import io.kubernetes.client.openapi.models.V1DeploymentStatus;
+import io.kubernetes.client.openapi.models.V1PodSpec;
+import io.kubernetes.client.openapi.models.V1PodTemplateSpec;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;

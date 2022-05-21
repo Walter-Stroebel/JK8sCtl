@@ -3,8 +3,9 @@
  */
 package nl.infcomtec.jk8sctl;
 
-import io.kubernetes.client.models.V1ObjectMeta;
-import io.kubernetes.client.models.V1PodSpec;
+import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.models.V1PodSpec;
+
 
 /**
  *
